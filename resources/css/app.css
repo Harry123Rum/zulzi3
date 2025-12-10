@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Tailwind CSS (v4) Core Import */
+@import "tailwindcss";
+
+/* Tailwind Custom Theme (v4) */
+@theme {
+  --color-primary: #5CBCE2;
+  --color-primary-dark: #0C4371;
+  --color-neutral-white: #FAFAFA;
+  --color-neutral-light: #E1E3E7;
+  --color-neutral-gray: #7C7C7C;
+  --font-sans: "Montserrat", sans-serif;
+}
+
+/* Base Layer */
+@layer base {
+  body {
+    font-family: 'Montserrat', sans-serif;
+    @apply text-neutral-gray bg-neutral-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    @apply font-bold text-primary-dark;
+  }
+}
+
+/* Components Layer */
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-light hover:bg-neutral-gray text-primary-dark font-semibold py-3 px-6 rounded-lg transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-neutral-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300;
+  }
+}
+
+/* Utilities Layer */
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(135deg, #EFF6FF 0%, #ECFEFF 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #0C4371 0%, #5CBCE2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Container */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background: #F5F6FA;
+}
+
+/* Content Layout */
+.register-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1000px;
+  width: 100%;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .register-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Promo Section */
+.promo-section {
+  background: linear-gradient(to bottom right, #5CBCE2, #0C4371);
+  padding: 2rem;
+  border-radius: 12px;
+  color: white;
+}
+
+.promo-section h2 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.promo-section ul {
+  margin-top: 1.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.promo-section li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.promo-section svg {
+  margin-right: 0.5rem;
+}
+
+/* Register Card */
+.register-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+}
+
+.register-card h1 {
+  font-size: 1.8rem;
+  color: #0C4371;
+  margin-bottom: 0.3rem;
+}
+
+.register-card p {
+  margin-bottom: 1.5rem;
+  color: #7C7C7C;
+}
+
+.login-redirect {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.login-redirect a {
+  color: #5CBCE2;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.login-redirect a:hover {
+  color: #0C4371;
+}
