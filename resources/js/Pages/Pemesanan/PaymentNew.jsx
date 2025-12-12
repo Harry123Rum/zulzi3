@@ -87,7 +87,7 @@ const PaymentNew = () => {
     const nominalDP = Number(order.dp_amount) || 0;
     const pembayaranList = Array.isArray(order.pembayaran) ? order.pembayaran : [];
 
-    // Hitung sudah dibayar (HANYA dari pembayaran Verified)
+    // Hitung sudah dibayar (HANYA dari pembayaran Terverifikasi)
     const status = order.status_pemesanan;
     const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Terverifikasi');
     const sudahDibayar = verifiedPayments.reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);

@@ -23,7 +23,7 @@ const SupirModal = ({ isOpen, onClose, onSave, supirData, setSupirData, errors }
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
             <form onSubmit={onSave}>
-                <div className="p-6 grid grid-cols-1 gap-4">
+                <div className="p-4 sm:p-6 grid grid-cols-1 gap-4">
                     <FormInput 
                         label="Nama Lengkap"
                         name="nama_lengkap"
@@ -63,11 +63,11 @@ const SupirModal = ({ isOpen, onClose, onSave, supirData, setSupirData, errors }
                     />
                 </div>
 
-                <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
-                    <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                    <button type="button" onClick={onClose} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">
                         Batal
                     </button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                    <button type="submit" className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
                         {submitButtonLabel}
                     </button>
                 </div>
@@ -293,14 +293,14 @@ const KelolaSupir = ({ setHeaderAction }) => {
             {/* Modal Konfirmasi Hapus */}
             {showDeleteConfirm && (
                 <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="Hapus Supir">
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                         <p className="text-sm text-slate-600">
                             Anda yakin ingin menghapus supir <strong>{supirToDelete?.nama_lengkap}</strong>? Tindakan ini tidak dapat dibatalkan.
                         </p>
                     </div>
-                    <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
-                        <button type="button" onClick={() => setShowDeleteConfirm(false)} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">Batal</button>
-                        <button type="button" onClick={confirmDelete} className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg">Hapus</button>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                        <button type="button" onClick={() => setShowDeleteConfirm(false)} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">Batal</button>
+                        <button type="button" onClick={confirmDelete} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg">Hapus</button>
                     </div>
                 </Modal>
             )}

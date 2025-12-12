@@ -15,7 +15,6 @@ import AdminRouteGuard from '@/Components/AdminRouteGuard.jsx';
 // Import halaman Public
 import LandingPage from '@/Pages/public/LandingPage';
 import AboutPage from '@/Pages/AboutPage';
-import ReviewPage from '@/Pages/ReviewPage';
 import ReviewForm from '@/Pages/Review/ReviewForm';
 import ReviewSuccess from '@/Pages/Review/ReviewSuccess';
 import PemesananPage from '@/Pages/Pemesanan/Index';
@@ -36,7 +35,6 @@ import ResetPasswordPage from './Pages/Auth/ResetPasswordPage.jsx';
 
 // Import halaman Admin
 import AdminPanel from '@/Pages/Admin/AdminPanel.jsx';
-
 // Wrapper untuk menangkap token Google OAuth
 const LandingPageWithAuth = () => {
     const [searchParams] = useSearchParams();
@@ -90,7 +88,6 @@ root.render(
           <Route path="/tentang-kami" element={<AboutPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/pemesanan" element={<PemesananPage />} />
-          <Route path="/review/:id" element={<ReviewPage />} />
 
           {/* ===================================== */}
           {/* ROUTE REVIEW SYSTEM (dari develop)   */}
@@ -113,10 +110,6 @@ root.render(
           <Route
             path="/profile"
             element={<AdminRouteGuard element={<ProfilePage />} isAdminOnly={false} />}
-          />
-          <Route
-            path="/edit-profile"
-            element={<AdminRouteGuard element={<EditProfile />} isAdminOnly={false} />}
           />
 
           {/* ===================================== */}

@@ -28,7 +28,7 @@ return new class extends Migration
             $table->date('tgl_bayar');
             $table->decimal('jumlah_bayar', 15, 2); // sesuai SQL dump
             $table->enum('metode_bayar', ['BCA', 'QRIS']); // pilihan BCA atau QRIS
-            $table->enum('jenis_pembayaran', ['DP', 'LUNAS']); // pilihan DP atau LUNAS
+            $table->enum('jenis_pembayaran', ['DP', 'LUNAS', 'PELUNASAN']); // pilihan DP, LUNAS, atau PELUNASAN
             $table->string('bukti_transfer', 255)->nullable();
 
             //status pembayaran

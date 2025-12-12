@@ -304,9 +304,9 @@ const PemesananPage = ({ setHeaderAction }) => {
 
                         {/* BAGIAN 1: INFO PESANAN (READ ONLY) */}
                         {/* Tambahkan p-6 disini agar ada jarak dari tepi modal */}
-                        <div className="p-6 border-b border-slate-100">
+                        <div className="p-4 sm:p-6 border-b border-slate-100">
                             <div className="space-y-3">
-                                <div className="flex justify-between items-start text-sm">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0 text-sm">
                                     <span className="text-slate-400 shrink-0">Pesanan:</span>
                                     <span className="font-semibold text-slate-700 text-right">{editItem.kode_pesanan}</span>
                                 </div>
@@ -328,7 +328,7 @@ const PemesananPage = ({ setHeaderAction }) => {
 
                         {/* BAGIAN 2: FORM INPUT */}
                         {/* Gunakan p-6 juga disini agar sejajar dengan atas */}
-                        <div className="p-6 space-y-4">
+                        <div className="p-4 sm:p-6 space-y-4">
                             <FormSelect
                                 label="Sopir"
                                 name="id_supir"
@@ -402,26 +402,26 @@ const PemesananPage = ({ setHeaderAction }) => {
                         </div>
 
                         {/* Footer Action */}
-                        <div className="flex justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 border-t border-slate-100 rounded-b-xl">
 
                             {/* CASE 1: status DIKONFIRMASI */}
                             {isVerified && !isPaid && (
-                                <p className="text-sm font-medium text-green-600">
+                                <p className="text-sm font-medium text-green-600 text-center sm:text-left">
                                     Pesanan sudah diverifikasi
                                 </p>
                             )}
 
                             {/* CASE 2: status LUNAS — tampilkan tombol selesai */}
                             {isPaid && (
-                                <div className="flex items-center gap-3">
-                                    <p className="text-sm font-medium text-green-600">
+                                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                                    <p className="text-sm font-medium text-green-600 text-center sm:text-left">
                                         Pesanan sudah diverifikasi
                                     </p>
 
                                     <button
                                         type="button"
                                         onClick={() => updateToSelesai(editItem)}
-                                        className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                                        className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                                     >
                                         Selesai
                                     </button>
@@ -434,14 +434,14 @@ const PemesananPage = ({ setHeaderAction }) => {
                                     <button
                                         type="button"
                                         onClick={() => setEditItem(null)}
-                                        className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+                                        className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
                                     >
                                         Batal
                                     </button>
                                     <button
                                         type="button"
                                         onClick={handleUpdateSubmit}
-                                        className="px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+                                        className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
                                     >
                                         Verifikasi
                                     </button>
@@ -454,23 +454,23 @@ const PemesananPage = ({ setHeaderAction }) => {
 
             {/* Delete Confirmation Modal */}
             <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Hapus Pemesanan">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     <p className="text-sm text-slate-600">
                         Anda yakin ingin menghapus pemesanan dari <strong>{deleteConfirm?.nama_pelanggan}</strong>?
                     </p>
                 </div>
-                <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
                     <button
                         type="button"
                         onClick={() => setDeleteConfirm(null)}
-                        className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                        className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                     >
                         Batal
                     </button>
                     <button
                         type="button"
                         onClick={() => handleDelete(deleteConfirm.id_pemesanan)}
-                        className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                        className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
                     >
                         Hapus
                     </button>

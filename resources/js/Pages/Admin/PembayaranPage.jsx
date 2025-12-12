@@ -120,7 +120,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
             'Terverifikasi': 'bg-green-100 text-green-800',
             'Ditolak': 'bg-red-100 text-red-800'
         };
-    return statusConfig[status_pembayaran] || 'bg-gray-100 text-gray-800';
+        return statusConfig[status_pembayaran] || 'bg-gray-100 text-gray-800';
     };
 
     // ✨ BARU: Helper untuk format jenis pembayaran

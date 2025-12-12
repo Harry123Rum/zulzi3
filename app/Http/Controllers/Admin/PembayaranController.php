@@ -48,7 +48,7 @@ class PembayaranController extends Controller
         ->orderBy('pembayaran.created_at', 'desc') // urut berdasarkan tanggal terbaru
         ->orderByRaw("CASE
                             WHEN pembayaran.status_pembayaran = 'Menunggu' THEN 1
-                            WHEN pembayaran.status_pembayaran = 'Terverfikasi' THEN 2
+                            WHEN pembayaran.status_pembayaran = 'Terverifikasi' THEN 2
                             ELSE 3
                         END ASC") // urutkan status khusus
         ->get();

@@ -3,7 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login Zulzi Trans</title>
+    <title>Zulzi Trans</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/logozulzi.png') }}">
     @viteReactRefresh
     @vite(['resources/js/Pages/Auth/LoginPage.jsx'])
 </head>

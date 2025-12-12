@@ -56,7 +56,36 @@ const Status = () => {
     };
 
     const adminPhone = "6283195559334";
-    const waLink = `https://wa.me/${adminPhone}?text=${encodeURIComponent(`Halo Admin, saya ingin diskusi harga untuk Order #${id}`)}`;
+    
+    // Generate WhatsApp message dengan data pesanan
+    const generateWAMessage = () => {
+        if (!order) return '';
+        
+        // Ambil nama pelanggan dari user atau order
+        const namaPelanggan = order.nama_pelanggan || order.user?.nama || order.pelanggan?.nama || 'Customer';
+        
+        // Ambil nama layanan - cek apakah object atau string
+        let namaLayanan = 'Layanan';
+        if (typeof order.layanan === 'string') {
+            namaLayanan = order.layanan;
+        } else if (order.layanan?.nama_layanan) {
+            namaLayanan = order.layanan.nama_layanan;
+        } else if (order.nama_layanan) {
+            namaLayanan = order.nama_layanan;
+        }
+        
+        const message = `Halo Admin, saya ingin diskusi harga untuk Order #${order.id_pemesanan}
+
+ID Pesanan: ${order.id_pemesanan}
+Nama: ${namaPelanggan}
+Layanan: ${namaLayanan}
+
+Terima kasih!`;
+
+        return encodeURIComponent(message);
+    };
+    
+    const waLink = `https://wa.me/${adminPhone}?text=${generateWAMessage()}`;
 
     if (loading) {
         return (
@@ -81,9 +110,9 @@ const Status = () => {
     const totalTagihan = Number(order.total_biaya) || 0;
     const nominalDP = Number(order.nominal_dp) || 0;
 
-    // Hitung total yang sudah dibayar (HANYA dari pembayaran yang Verified)
+    // Hitung total yang sudah dibayar (HANYA dari pembayaran yang Terverifikasi)
     const pembayaranList = Array.isArray(order.pembayaran) ? order.pembayaran : [];
-    const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Verified');
+    const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Terverifikasi');
     const sudahDibayar = verifiedPayments.reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);
     const sisaPembayaran = Math.max(0, totalTagihan - sudahDibayar);
 

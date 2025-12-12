@@ -67,7 +67,6 @@ const ArmadaPage = ({ setHeaderAction }) => {
     const openModal = (mode, data = {}) => {
         setModalMode(mode);
         setFormData(mode === 'add' ? { 
-            status_ketersediaan: 'Tersedia',
             layanan: '',
             no_plat: '',
             jenis_kendaraan: '',
@@ -138,7 +137,6 @@ const ArmadaPage = ({ setHeaderAction }) => {
                             <th className="py-4 px-4">Layanan</th>
                             <th className="py-4 px-4">Jenis</th>
                             <th className="py-4 px-4">Kapasitas</th>
-                            <th className="py-4 px-4">Status</th>
                             <th className="py-4 px-4 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -154,14 +152,13 @@ const ArmadaPage = ({ setHeaderAction }) => {
                                 </td>
                                 <td className="py-3.5 px-4">{item.jenis_kendaraan}</td>
                                 <td className="py-3.5 px-4">{item.kapasitas}</td>
-                                <td className="py-3.5 px-4"><StatusBadge status={item.status_ketersediaan} /></td>
                                 <td className="py-3.5 px-4 text-right space-x-2 flex justify-end">
                                     <ActionButton type="edit" onClick={() => openModal('edit', item)} />
                                     <ActionButton type="delete" onClick={() => setDeleteConfirm(item)} />
                                 </td>
                             </tr>
                         )) : (
-                            <tr><td colSpan="6" className="text-center py-12 text-slate-400 italic">Tidak ada data armada.</td></tr>
+                            <tr><td colSpan="5" className="text-center py-12 text-slate-400 italic">Tidak ada data armada.</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -170,7 +167,7 @@ const ArmadaPage = ({ setHeaderAction }) => {
             {/* MODAL */}
             <Modal isOpen={isModalOpen} onClose={closeModal} title={modalMode === 'add' ? 'Tambah Armada' : 'Edit Armada'}>
                 <form onSubmit={handleSave}>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="p-4 sm:p-6 grid grid-cols-1 gap-4 sm:gap-5">
                         <FormInput 
                             label="Nomor Polisi" 
                             name="no_plat" 
@@ -207,31 +204,23 @@ const ArmadaPage = ({ setHeaderAction }) => {
                         <FormInput label="Jenis Kendaraan" name="jenis_kendaraan" value={formData.jenis_kendaraan} onChange={handleFormChange} error={errors.jenis_kendaraan?.[0]} placeholder="Truk Box" />
                         <FormInput label="Kapasitas" name="kapasitas" value={formData.kapasitas} onChange={handleFormChange} error={errors.kapasitas?.[0]} placeholder="2 Ton" />
                         <FormInput label="Harga Sewa / Hari" name="harga_sewa_per_hari" type="number" value={formData.harga_sewa_per_hari} onChange={handleFormChange} error={errors.harga_sewa_per_hari?.[0]} placeholder="0" />
-                        
-                        <div className="md:col-span-2">
-                            <FormSelect label="Status Ketersediaan" name="status_ketersediaan" value={formData.status_ketersediaan} onChange={handleFormChange} error={errors.status_ketersediaan?.[0]}>
-                                <option value="Tersedia">Tersedia</option>
-                                <option value="Digunakan">Digunakan</option>
-                                <option value="Perbaikan">Perbaikan</option>
-                            </FormSelect>
-                        </div>
                     </div>
                     
-                    <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
-                        <button type="button" onClick={closeModal} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Batal</button>
-                        <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Simpan Data</button>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                        <button type="button" onClick={closeModal} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Batal</button>
+                        <button type="submit" className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Simpan Data</button>
                     </div>
                 </form>
             </Modal>
 
             {/* DELETE MODAL */}
             <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Konfirmasi Hapus">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     <p className="text-sm text-slate-600">Hapus armada <strong>{deleteConfirm?.no_plat}</strong>?</p>
                 </div>
-                <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
-                    <button type="button" onClick={() => setDeleteConfirm(null)} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">Batal</button>
-                    <button type="button" onClick={() => handleDelete(deleteConfirm.id_armada)} className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg">Hapus</button>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                    <button type="button" onClick={() => setDeleteConfirm(null)} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg">Batal</button>
+                    <button type="button" onClick={() => handleDelete(deleteConfirm.id_armada)} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg">Hapus</button>
                 </div>
             </Modal>
         </>

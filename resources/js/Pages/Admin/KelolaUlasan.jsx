@@ -101,9 +101,9 @@ const UlasanDetailModal = ({ isOpen, onClose, ulasanData, onSave }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Detail Ulasan & Tanggapan" maxWidth="max-w-xl">
             <form onSubmit={handleSave}>
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                     {/* Pelanggan & Layanan */}
-                    <div className="flex justify-between items-center pb-2 border-b">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 pb-2 border-b">
                         <div>
                             <p className="text-sm text-slate-500">Pelanggan</p>
                             <h4 className="text-xl font-semibold text-slate-800">{ulasanData.pelanggan_nama}</h4>
@@ -114,7 +114,7 @@ const UlasanDetailModal = ({ isOpen, onClose, ulasanData, onSave }) => {
                     </div>
                     
                     {/* Rating Detail Grid */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {['Supir', 'Kendaraan', 'Pelayanan'].map((kategori, index) => {
                             const ratingKey = ['rating_driver', 'rating_kendaraan', 'rating_pelayanan'][index];
                             const ratingValue = ulasanData[ratingKey];
@@ -133,7 +133,7 @@ const UlasanDetailModal = ({ isOpen, onClose, ulasanData, onSave }) => {
                     </div>
 
                     {/* Rating Keseluruhan */}
-                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg flex justify-between items-center">
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 sm:p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
                         <div>
                             <p className="text-sm font-medium text-slate-700">Rating Keseluruhan</p>
                             <span className="text-xl font-bold text-yellow-700">{ulasanData.rata_rata} dari 5.0</span>
@@ -171,7 +171,7 @@ const UlasanDetailModal = ({ isOpen, onClose, ulasanData, onSave }) => {
                 </div>
 
                 {/* Footer Aksi */}
-                <div className="flex justify-between items-center p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 rounded-b-xl">
                     <div className="flex items-center">
                         <input
                             type="checkbox"
@@ -185,11 +185,11 @@ const UlasanDetailModal = ({ isOpen, onClose, ulasanData, onSave }) => {
                             Tampilkan di Landing Page
                         </label>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                         <button 
                             type="button" 
                             onClick={onClose} 
-                            className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg"
+                            className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg"
                             disabled={localLoading}
                         >
                             Batal

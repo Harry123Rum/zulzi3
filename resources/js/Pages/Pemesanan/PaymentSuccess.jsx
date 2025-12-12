@@ -65,11 +65,11 @@ const PaymentSuccess = () => {
     const totalTagihan = Number(order.total_biaya) || 0;
     const pembayaranList = Array.isArray(order.pembayaran) ? order.pembayaran : [];
 
-    // Di success page, hanya hitung pembayaran yang Verified
-    const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Verified');
+    // Di success page, hanya hitung pembayaran yang Terverifikasi
+    const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Terverifikasi');
     const totalTerbayar = verifiedPayments.reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);
 
-    // Pisahkan pembayaran DP dan LUNAS (yang Verified)
+    // Pisahkan pembayaran DP dan LUNAS (yang Terverifikasi)
     const dpPayment = verifiedPayments.find(p => p.jenis_pembayaran === 'DP');
     const lunasPayment = verifiedPayments.find(p => p.jenis_pembayaran === 'LUNAS');
 

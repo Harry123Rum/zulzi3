@@ -152,12 +152,12 @@ const ProfilePage = () => {
         });
     };
 
-    // Helper: Hitung total terbayar (hanya yang Verified)
+    // Helper: Hitung total terbayar (hanya yang Terverifikasi)
     const getTotalTerbayar = (order) => {
         if (!order.pembayaran || !Array.isArray(order.pembayaran)) return 0;
 
         return order.pembayaran
-            .filter(p => p.status_pembayaran === 'Verified')
+            .filter(p => p.status_pembayaran === 'Terverifikasi')
             .reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);
     };
 
@@ -702,19 +702,19 @@ const ProfilePage = () => {
                                                         </div>
                                                         <div className="text-right">
                                                             <p className={`font-bold ${
-                                                                payment.status_pembayaran === 'Verified' ? 'text-green-600' :
-                                                                payment.status_pembayaran === 'Rejected' ? 'text-red-600' :
+                                                                payment.status_pembayaran === 'Terverifikasi' ? 'text-green-600' :
+                                                                payment.status_pembayaran === 'Ditolak' ? 'text-red-600' :
                                                                 'text-orange-600'
                                                             }`}>
                                                                 {formatRupiah(payment.jumlah_bayar)}
                                                             </p>
                                                             <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                                payment.status_pembayaran === 'Verified' ? 'bg-green-100 text-green-700' :
-                                                                payment.status_pembayaran === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                                                payment.status_pembayaran === 'Terverifikasi' ? 'bg-green-100 text-green-700' :
+                                                                payment.status_pembayaran === 'Ditolak' ? 'bg-red-100 text-red-700' :
                                                                 'bg-orange-100 text-orange-700'
                                                             }`}>
-                                                                {payment.status_pembayaran === 'Verified' ? 'Terverifikasi' :
-                                                                 payment.status_pembayaran === 'Rejected' ? 'Ditolak' : 'Menunggu'}
+                                                                {payment.status_pembayaran === 'Terverifikasi' ? 'Terverifikasi' :
+                                                                 payment.status_pembayaran === 'Ditolak' ? 'Ditolak' : 'Menunggu'}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -890,4 +890,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

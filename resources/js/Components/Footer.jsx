@@ -52,7 +52,7 @@ export default function Footer() {
                         <ul className="space-y-4 text-sm text-gray-400">
                             <li className="flex items-start gap-3">
                                 <Phone size={18} className="text-[#00a3e0] mt-0.5" /> 
-                                <span>+62 812 3456 7890<br/><span className="text-xs text-gray-500">Senin - Minggu (24 Jam)</span></span>
+                                <span>+62 815 8822 394<br/><span className="text-xs text-gray-500">Senin - Minggu (24 Jam)</span></span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <Mail size={18} className="text-[#00a3e0] mt-0.5" /> 
@@ -60,7 +60,7 @@ export default function Footer() {
                             </li>
                             <li className="flex items-start gap-3">
                                 <MapPin size={18} className="text-[#00a3e0] mt-0.5" /> 
-                                <span>Jl. Raya Logistik No. 123,<br/>Jakarta Timur, Indonesia</span>
+                                <span>Jl. KH. Abdul Hamid II No.92D, RT.3/RW.3,<br/>Duri Kosambi, Kecamatan Cengkareng,<br/>Jakarta Barat, DKI Jakarta 11750</span>
                             </li>
                         </ul>
                     </div>
