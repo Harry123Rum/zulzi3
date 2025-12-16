@@ -21,6 +21,12 @@ export default function ReviewForm() {
     pelayanan: 0
   });
   const [komentar, setKomentar] = useState('');
+  const [komentarError, setKomentarError] = useState('');
+  const [ratingErrors, setRatingErrors] = useState({
+    driver: false,
+    kendaraan: false,
+    pelayanan: false
+  });
   const [hoveredRating, setHoveredRating] = useState({
     driver: 0,
     kendaraan: 0,
@@ -60,16 +66,53 @@ export default function ReviewForm() {
 
   const handleRatingChange = (type, value) => {
     setRatings(prev => ({ ...prev, [type]: value }));
+    // Clear error when user selects a rating
+    if (ratingErrors[type]) {
+      setRatingErrors(prev => ({ ...prev, [type]: false }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    let hasError = false;
+    const newRatingErrors = { driver: false, kendaraan: false, pelayanan: false };
+    
+    // Check all ratings
+    if (ratings.driver === 0) {
+      newRatingErrors.driver = true;
+      hasError = true;
+    }
+    if (ratings.kendaraan === 0) {
+      newRatingErrors.kendaraan = true;
+      hasError = true;
+    }
+    if (ratings.pelayanan === 0) {
+      newRatingErrors.pelayanan = true;
+      hasError = true;
+    }
+    
+    // Check komentar
     if (!komentar.trim()) {
-      setError('Komentar tidak boleh kosong');
+      setKomentarError('Komentar wajib diisi');
+      hasError = true;
+    } else if (komentar.trim().length < 10) {
+      setKomentarError('Komentar minimal 10 karakter');
+      hasError = true;
+    } else {
+      setKomentarError('');
+    }
+    
+    setRatingErrors(newRatingErrors);
+    
+    if (hasError) {
+      setError('Mohon lengkapi semua field yang diperlukan');
       return;
     }
 
     setSubmitting(true);
+    setError(null); // Clear any previous errors
     try {
       // Get CSRF token from meta tag
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -98,7 +141,7 @@ export default function ReviewForm() {
         throw new Error(data.message || data.errors?.komentar?.[0] || 'Gagal menyimpan ulasan');
       }
 
-      // Redirect ke success page dengan ulasan ID
+      // Redirect ke success page dengan ulasan ID (path parameter)
       navigate(`/review-success/${data.data.id_ulasan}`);
     } catch (err) {
       setError(err.message || 'Gagal menyimpan ulasan');
@@ -114,6 +157,7 @@ export default function ReviewForm() {
         {[1, 2, 3, 4, 5].map(star => (
           <button
             key={star}
+            type="button"
             onClick={() => handleRatingChange(type, star)}
             onMouseEnter={() => setHoveredRating(prev => ({ ...prev, [type]: star }))}
             onMouseLeave={() => setHoveredRating(prev => ({ ...prev, [type]: 0 }))}
@@ -130,7 +174,16 @@ export default function ReviewForm() {
           </button>
         ))}
       </div>
-      <p className="text-xs text-gray-500">Rating: {ratings[type]}/5</p>
+      <div className="flex justify-between items-center">
+        <p className={`text-xs transition-colors ${
+          ratingErrors[type] ? 'text-red-500 font-medium' : 'text-gray-500'
+        }`}>
+          {ratingErrors[type] ? '⚠ Wajib beri rating' : `Rating: ${ratings[type]}/5`}
+        </p>
+        {ratings[type] > 0 && !ratingErrors[type] && (
+          <p className="text-xs text-green-600">✓ Terisi</p>
+        )}
+      </div>
     </div>
   );
 
@@ -189,11 +242,11 @@ export default function ReviewForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#f8fbff] to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-white via-[#f8fbff] to-white flex flex-col overflow-y-auto">
       <Navbar />
 
-      {/* Main Content */}
-      <div className="flex-1 py-12">
+      {/* Main Content - dengan padding-top untuk mengkompensasi navbar fixed */}
+      <div className="flex-1 py-12 pt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Header */}
@@ -215,15 +268,15 @@ export default function ReviewForm() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Armada</p>
-                  <p className="font-bold text-gray-800">{pemesanan.armada?.jenis_kendaraan || 'N/A'}</p>
+                  <p className="font-bold text-gray-800">{pemesanan.nama_armada || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tanggal Pemesanan</p>
-                  <p className="font-bold text-gray-800">{new Date(pemesanan.tgl_pemesanan).toLocaleDateString('id-ID')}</p>
+                  <p className="font-bold text-gray-800">{pemesanan.tgl_pesan}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Harga</p>
-                  <p className="font-bold text-gray-800">Rp {(pemesanan.total_harga || 0).toLocaleString('id-ID')}</p>
+                  <p className="font-bold text-gray-800">{pemesanan.total_biaya}</p>
                 </div>
               </div>
             </div>
@@ -251,13 +304,37 @@ export default function ReviewForm() {
                 <label className="text-sm font-bold text-gray-700 block mb-2">Komentar Ulasan</label>
                 <textarea
                   value={komentar}
-                  onChange={(e) => setKomentar(e.target.value)}
-                  placeholder="Ceritakan pengalaman Anda menggunakan layanan Zulzi Trans..."
-                  className="w-full px-4 py-3 border-2 border-blue-100 rounded-xl focus:outline-none focus:border-[#5eb3ff] focus:ring-2 focus:ring-[#5eb3ff]/20 resize-none"
+                  onChange={(e) => {
+                    setKomentar(e.target.value);
+                    const val = e.target.value.trim();
+                    if (komentarError) {
+                      if (!val) {
+                        setKomentarError('Komentar wajib diisi');
+                      } else if (val.length < 10) {
+                        setKomentarError('Komentar minimal 10 karakter');
+                      } else {
+                        setKomentarError('');
+                      }
+                    }
+                  }}
+                  placeholder="Ceritakan pengalaman Anda menggunakan layanan Zulzi Trans (minimal 10 karakter)..."
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none resize-none transition-all ${
+                    komentarError 
+                      ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                      : 'border-blue-100 focus:border-[#5eb3ff] focus:ring-2 focus:ring-[#5eb3ff]/20'
+                  }`}
                   rows={5}
                   disabled={submitting}
+                  maxLength={500}
                 />
-                <p className="text-xs text-gray-500 mt-2">{komentar.length}/500 karakter</p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className={`text-xs transition-colors ${komentarError ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                    {komentarError ? `⚠ ${komentarError}` : `${komentar.length}/500 karakter`}
+                  </p>
+                  {komentar.trim().length >= 10 && !komentarError && (
+                    <p className="text-xs text-green-600">✓ Valid</p>
+                  )}
+                </div>
               </div>
 
               {/* Actions */}

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../Layouts/MainLayout';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Phone, MapPin, Calendar, Package, CheckCircle, Clock, XCircle, AlertTriangle, Eye, ArrowLeft, Wallet, Star } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Package, CheckCircle, Clock, XCircle, AlertTriangle, Eye, ArrowLeft, Wallet, Star, Truck } from 'lucide-react';
 
 const ProfilePage = () => {
     const { user, isAuthenticated, updateUser } = useAuth();
@@ -47,11 +47,39 @@ const ProfilePage = () => {
         fetchOrders();
     }, []);
 
+    // Auto-refresh data setiap 5 detik ketika tab orders aktif
+    useEffect(() => {
+        if (activeTab !== 'orders') return;
+
+        const intervalId = setInterval(() => {
+            console.log('🔄 Auto-refreshing orders...');
+            fetchOrders(1, false); // Refresh dari halaman pertama, tanpa loading spinner
+        }, 5000); // 5 detik
+
+        return () => clearInterval(intervalId); // Cleanup saat unmount atau tab berubah
+    }, [activeTab]);
+
+    // Auto-refresh ketika user kembali ke halaman (visibility change)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && activeTab === 'orders') {
+                console.log('👁️ Page visible again, refreshing orders...');
+                fetchOrders(1, false);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [activeTab]);
+
     const fetchOrders = async (page = 1, append = false) => {
         if (append) {
             setIsLoadingMore(true);
         } else {
-            setIsLoading(true);
+            // Jangan show loading spinner untuk auto-refresh, hanya untuk initial load
+            if (orders.length === 0) {
+                setIsLoading(true);
+            }
         }
 
         try {
@@ -171,7 +199,6 @@ const ProfilePage = () => {
         const statusConfig = {
             'Menunggu': { bg: 'bg-orange-100', text: 'text-orange-700', icon: Clock },
             'Dikonfirmasi': { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
-            'Berlangsung': { bg: 'bg-blue-100', text: 'text-blue-700', icon: Package },
             'Menunggu Pembayaran': { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock },
             'Menunggu Verifikasi': { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock },
             'Pembayaran Ditolak': { bg: 'bg-red-100', text: 'text-red-700', icon: XCircle },
@@ -250,8 +277,8 @@ const ProfilePage = () => {
             // Group 2: Admin sudah konfirmasi, menunggu customer bayar atau admin verifikasi bukti bayar
             if (['Dikonfirmasi', 'Menunggu Verifikasi', 'Pembayaran Ditolak'].includes(status)) return 'menunggu-pembayaran';
 
-            // Group 3: Pembayaran sudah diverifikasi, order sedang dikerjakan
-            if (['DP Dibayar', 'Lunas', 'Berlangsung'].includes(status)) return 'sedang-diproses';
+            // Group 3: Pembayaran sudah diverifikasi, order sedang dikerjakan (koordinasi via WA)
+            if (['DP Dibayar', 'Lunas'].includes(status)) return 'sedang-diproses';
 
             // Group 4: Order selesai
             if (status === 'Selesai') return 'selesai';
@@ -385,15 +412,21 @@ const ProfilePage = () => {
                                                             Menunggu Pelunasan
                                                         </span>
                                                     )}
-                                                    {/* Badge Sudah Review */}
+                                                    {/* Badge Sudah Review - Clickable */}
                                                     {order.status_pemesanan === 'Selesai' && order.ulasan && order.ulasan.length > 0 && (
-                                                        <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full inline-flex items-center gap-1">
-                                                            <CheckCircle size={12} />
-                                                            Sudah Direview
-                                                        </span>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Prevent card click
+                                                                navigate(`/review-success/${order.ulasan[0].id_ulasan}`);
+                                                            }}
+                                                            className="text-xs text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded-full inline-flex items-center gap-1 transition cursor-pointer border border-green-200 hover:border-green-300"
+                                                        >
+                                                            <Eye size={12} />
+                                                            Lihat Review
+                                                        </button>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500 font-mono">Order #{order.id_pemesanan}</p>
+                                                <p className="text-sm text-gray-500 font-mono">{order.kode_pesanan || 'ZT-' + String(order.id_pemesanan).padStart(5, '0')}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-sm text-gray-500">Total Biaya</p>
@@ -532,7 +565,7 @@ const ProfilePage = () => {
 
             {/* Modal Edit Profile */}
             {isEditModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsEditModalOpen(false)}>
+                <div className="fixed inset-0 bg-white bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsEditModalOpen(false)}>
                     <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-2xl font-bold text-gray-800 mb-6">Edit Profil</h3>
 
@@ -602,221 +635,258 @@ const ProfilePage = () => {
 
             {/* Modal Detail Pesanan */}
             {isDetailModalOpen && selectedOrder && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsDetailModalOpen(false)}>
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
-                        {/* Header */}
-                        <div className="bg-gradient-to-r from-[#003366] to-[#00a3e0] p-6 text-white">
-                            <h3 className="text-2xl font-bold">Detail Pesanan #{selectedOrder.id_pemesanan}</h3>
-                            <p className="text-sm opacity-90 mt-1">{selectedOrder.layanan?.nama_layanan}</p>
+                <div className="fixed inset-0 bg-white bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsDetailModalOpen(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
+                        {/* Header - Compact */}
+                        <div className="relative bg-gradient-to-r from-[#0C4371] to-[#5CBCE2] p-4 overflow-hidden">
+                            <div className="relative z-10">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                        <p className="text-xs uppercase tracking-wider text-white opacity-80 mb-1.5">Detail Pesanan</p>
+                                        <h3 className="text-2xl font-extrabold text-white tracking-tight mb-1.5">{selectedOrder.kode_pesanan || 'ZT-' + String(selectedOrder.id_pemesanan).padStart(5, '0')}</h3>
+                                        <p className="text-xs text-white opacity-90 flex items-center gap-1.5">
+                                            <Package size={12} />
+                                            {selectedOrder.layanan?.nama_layanan}
+                                        </p>
+                                    </div>
+                                    <StatusBadge status={selectedOrder.status_pemesanan} />
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Status Badge */}
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-500">Status</span>
-                                <StatusBadge status={selectedOrder.status_pemesanan} />
-                            </div>
+                        <div className="p-4 space-y-4 max-h-[calc(90vh-160px)] overflow-y-auto">
 
-                            {/* Info Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <p className="text-xs text-gray-500 mb-1">Tanggal Layanan</p>
-                                    <p className="font-bold text-gray-800">{formatDate(selectedOrder.tgl_mulai)}</p>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <p className="text-xs text-gray-500 mb-1">Total Biaya</p>
-                                    <p className="font-bold text-[#003366] text-lg">{formatRupiah(selectedOrder.total_biaya)}</p>
-                                </div>
-                            </div>
-
-                            {/* Payment Breakdown - Show if has payments or DP Dibayar */}
-                            {(selectedOrder.pembayaran?.length > 0 || selectedOrder.status_pemesanan === 'DP Dibayar') && (
-                                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-5">
-                                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                        <Wallet size={20} className="text-[#00a3e0]" />
-                                        Rincian Pembayaran
-                                    </h4>
-                                    <div className="space-y-3">
-                                        {/* Total Biaya */}
-                                        <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                                            <span className="text-sm text-gray-600">Total Biaya</span>
-                                            <span className="font-bold text-gray-800">{formatRupiah(selectedOrder.total_biaya)}</span>
-                                        </div>
-
-                                        {/* Yang Sudah Dibayar (hanya verified) */}
-                                        {(() => {
-                                            const totalTerbayar = getTotalTerbayar(selectedOrder);
-                                            const sisaPembayaran = getSisaPembayaran(selectedOrder);
-
-                                            return (
-                                                <>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-sm text-gray-600">Sudah Dibayar</span>
-                                                        <span className="font-bold text-green-600">
-                                                            {formatRupiah(totalTerbayar)}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Sisa Pembayaran */}
-                                                    {sisaPembayaran > 0 && (
-                                                        <div className="flex justify-between items-center pt-3 border-t border-blue-200">
-                                                            <span className="text-sm font-bold text-gray-700">Sisa Pembayaran</span>
-                                                            <span className="font-bold text-orange-600 text-lg">
-                                                                {formatRupiah(sisaPembayaran)}
-                                                            </span>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Status Lunas */}
-                                                    {sisaPembayaran === 0 && totalTerbayar > 0 && (
-                                                        <div className="mt-3 bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-bold text-center">
-                                                            ✓ Pembayaran Lunas
-                                                        </div>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
+                            {/* Info Grid - Compact */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-[#EFF6FF] p-3 rounded-lg border border-[#BBDEFF]">
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                        <Calendar className="text-[#5CBCE2]" size={14} />
+                                        <p className="text-xs font-semibold text-[#0C4371] uppercase">Tanggal</p>
                                     </div>
+                                    <p className="font-bold text-[#0C4371] text-sm">{formatDate(selectedOrder.tgl_mulai)}</p>
+                                </div>
+                                <div className="bg-[#ECFEFF] p-3 rounded-lg border border-[#5CBCE2]">
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                        <Wallet className="text-[#0C4371]" size={14} />
+                                        <p className="text-xs font-semibold text-[#0C4371] uppercase">Total</p>
+                                    </div>
+                                    <p className="font-extrabold text-[#0C4371] text-base">{formatRupiah(selectedOrder.total_biaya)}</p>
+                                </div>
+                            </div>
 
-                                    {/* List Pembayaran */}
-                                    {selectedOrder.pembayaran?.length > 0 && (
-                                        <div className="mt-4 pt-4 border-t border-blue-200">
-                                            <p className="text-xs text-gray-500 mb-3 font-semibold">Riwayat Transaksi:</p>
-                                            <div className="space-y-2">
-                                                {selectedOrder.pembayaran.map((payment, idx) => (
-                                                    <div key={payment.id_pembayaran} className="flex justify-between items-center text-sm bg-white rounded-lg p-3">
-                                                        <div>
-                                                            <p className="font-medium text-gray-800">
-                                                                Pembayaran #{idx + 1}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500">
-                                                                {payment.metode_pembayaran} • {formatDate(payment.tgl_bayar)}
-                                                            </p>
-                                                            {/* Alasan penolakan jika ada */}
-                                                            {payment.status_pembayaran === 'Rejected' && payment.catatan && (
-                                                                <div className="mt-2 bg-red-50 border border-red-200 rounded p-2">
-                                                                    <p className="text-xs text-red-700 font-medium">Alasan Penolakan:</p>
-                                                                    <p className="text-xs text-red-600 mt-1">{payment.catatan}</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className={`font-bold ${
-                                                                payment.status_pembayaran === 'Terverifikasi' ? 'text-green-600' :
-                                                                payment.status_pembayaran === 'Ditolak' ? 'text-red-600' :
-                                                                'text-orange-600'
-                                                            }`}>
-                                                                {formatRupiah(payment.jumlah_bayar)}
-                                                            </p>
-                                                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                                payment.status_pembayaran === 'Terverifikasi' ? 'bg-green-100 text-green-700' :
-                                                                payment.status_pembayaran === 'Ditolak' ? 'bg-red-100 text-red-700' :
-                                                                'bg-orange-100 text-orange-700'
-                                                            }`}>
-                                                                {payment.status_pembayaran === 'Terverifikasi' ? 'Terverifikasi' :
-                                                                 payment.status_pembayaran === 'Ditolak' ? 'Ditolak' : 'Menunggu'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
+                            {/* Lokasi - Compact */}
+                            <div className="bg-[#FAFAFA] border border-[#E1E3E7] rounded-lg p-3">
+                                <div className="flex items-center gap-1.5 mb-3">
+                                    <MapPin className="text-[#5CBCE2]" size={14} />
+                                    <p className="text-xs font-bold text-[#0C4371]">Lokasi Perjalanan</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex gap-2 items-start">
+                                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                                         </div>
+                                        <div className="flex-1">
+                                            <p className="text-xs text-gray-500 mb-0.5">Jemput</p>
+                                            <p className="font-semibold text-[#0C4371] text-xs">{selectedOrder.lokasi_jemput}</p>
+                                        </div>
+                                    </div>
+                                    {selectedOrder.lokasi_tujuan && selectedOrder.lokasi_tujuan !== '-' && (
+                                        <>
+                                            <div className="flex justify-center">
+                                                <div className="w-px h-4 bg-[#E1E3E7]"></div>
+                                            </div>
+                                            <div className="flex gap-2 items-start">
+                                                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <MapPin className="text-white" size={12} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs text-gray-500 mb-0.5">Tujuan</p>
+                                                    <p className="font-semibold text-[#0C4371] text-xs">{selectedOrder.lokasi_tujuan}</p>
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Lokasi */}
-                            <div className="space-y-3">
-                                <div className="flex gap-3 items-start">
-                                    <MapPin className="text-[#00a3e0] shrink-0 mt-1" size={20} />
-                                    <div className="flex-1">
-                                        <p className="text-xs text-gray-500">Lokasi Jemput</p>
-                                        <p className="font-medium text-gray-800">{selectedOrder.lokasi_jemput}</p>
+                            {/* Armada & Supir - Compact Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {/* Armada */}
+                                {selectedOrder.armada && (
+                                    <div className="bg-[#FAFAFA] border border-[#E1E3E7] rounded-lg p-3">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <Truck className="text-[#5CBCE2]" size={14} />
+                                            <p className="text-xs font-bold text-[#0C4371]">Armada</p>
+                                        </div>
+                                        <div className="flex gap-2 items-center">
+                                            <div className="w-10 h-10 bg-[#BBDEFF] rounded-lg flex items-center justify-center">
+                                                <Truck size={20} className="text-[#0C4371]" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-bold text-[#0C4371] text-xs mb-0.5">{selectedOrder.armada.nama_armada}</p>
+                                                <p className="text-xs font-mono text-gray-600">{selectedOrder.armada.no_plat}</p>
+                                                <span className="text-xs bg-[#5CBCE2] text-white px-2 py-0.5 rounded-full font-semibold inline-block mt-1">
+                                                    {selectedOrder.armada.jenis_kendaraan}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                {selectedOrder.lokasi_tujuan && selectedOrder.lokasi_tujuan !== '-' && (
-                                    <div className="flex gap-3 items-start">
-                                        <MapPin className="text-[#00a3e0] shrink-0 mt-1" size={20} />
-                                        <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Lokasi Tujuan</p>
-                                            <p className="font-medium text-gray-800">{selectedOrder.lokasi_tujuan}</p>
+                                )}
+
+                                {/* Supir */}
+                                {selectedOrder.supir && (
+                                    <div className="bg-[#FAFAFA] border border-[#E1E3E7] rounded-lg p-3">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <User className="text-[#5CBCE2]" size={14} />
+                                            <p className="text-xs font-bold text-[#0C4371]">Supir</p>
+                                        </div>
+                                        <div className="flex gap-2 items-center">
+                                            <div className="w-10 h-10 bg-[#0C4371] rounded-lg flex items-center justify-center text-white font-bold text-base">
+                                                {selectedOrder.supir.nama?.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-bold text-[#0C4371] text-xs mb-0.5">{selectedOrder.supir.nama}</p>
+                                                <p className="text-xs text-gray-700 flex items-center gap-1">
+                                                    <Phone size={10} className="text-[#5CBCE2]" />
+                                                    {selectedOrder.supir.no_telepon}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Armada */}
-                            {selectedOrder.armada && (
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <p className="text-xs text-gray-500 mb-3">Armada</p>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                            <Package size={32} className="text-gray-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-800">{selectedOrder.armada.nama_armada}</p>
-                                            <p className="text-sm text-gray-600">{selectedOrder.armada.no_plat}</p>
-                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full mt-1 inline-block">
-                                                {selectedOrder.armada.jenis_kendaraan}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Supir */}
-                            {selectedOrder.supir && (
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <p className="text-xs text-gray-500 mb-3">Supir</p>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="w-16 h-16 bg-[#003366] rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                                            {selectedOrder.supir.nama?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-800">{selectedOrder.supir.nama}</p>
-                                            <p className="text-sm text-gray-600">{selectedOrder.supir.no_telepon}</p>
-                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full mt-1 inline-block">
-                                                SIM: {selectedOrder.supir.no_sim}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Deskripsi */}
+                            {/* Deskripsi - Compact */}
                             {selectedOrder.deskripsi_barang && (
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <p className="text-xs text-gray-500 mb-2">Deskripsi</p>
-                                    <p className="text-sm text-gray-700">{selectedOrder.deskripsi_barang}</p>
+                                <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+                                    <p className="text-xs font-bold text-orange-800 mb-1 flex items-center gap-1">
+                                        <span>💬</span> Catatan
+                                    </p>
+                                    <p className="text-xs text-gray-700 leading-relaxed">"{selectedOrder.deskripsi_barang}"</p>
                                 </div>
                             )}
 
-                            {/* Timeline */}
-                            <div className="border-t border-gray-200 pt-4">
-                                <p className="text-xs text-gray-500 mb-3">Timeline</p>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Tanggal Pesan</span>
-                                        <span className="font-medium">{formatDate(selectedOrder.tgl_pesan)}</span>
+                            {/* Payment & Timeline - Collapsible Compact */}
+                            <details className="bg-[#FAFAFA] border border-[#E1E3E7] rounded-lg overflow-hidden">
+                                <summary className="cursor-pointer p-3 hover:bg-gray-100 transition flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <Wallet className="text-[#5CBCE2]" size={14} />
+                                        <span className="font-bold text-[#0C4371] text-xs">Detail Pembayaran & Timeline</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Tanggal Mulai</span>
-                                        <span className="font-medium">{formatDate(selectedOrder.tgl_mulai)}</span>
-                                    </div>
-                                    {selectedOrder.tgl_selesai && (
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Tanggal Selesai</span>
-                                            <span className="font-medium">{formatDate(selectedOrder.tgl_selesai)}</span>
+                                    <span className="text-xs text-gray-500">▼</span>
+                                </summary>
+                                
+                                <div className="p-4 pt-0 space-y-4 border-t border-[#E1E3E7]">
+                                    {/* Payment info */}
+                                    {(selectedOrder.pembayaran?.length > 0 || selectedOrder.status_pemesanan === 'DP Dibayar') && (
+                                        <div>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-600">Total Biaya</span>
+                                                    <span className="font-bold text-[#0C4371]">{formatRupiah(selectedOrder.total_biaya)}</span>
+                                                </div>
+
+                                                {(() => {
+                                                    const totalTerbayar = getTotalTerbayar(selectedOrder);
+                                                    const sisaPembayaran = getSisaPembayaran(selectedOrder);
+
+                                                    return (
+                                                        <>
+                                                            <div className="flex justify-between items-center text-sm">
+                                                                <span className="text-gray-600 flex items-center gap-2">
+                                                                    <CheckCircle size={12} className="text-green-600" />
+                                                                    Sudah Dibayar
+                                                                </span>
+                                                                <span className="font-bold text-green-600">
+                                                                    {formatRupiah(totalTerbayar)}
+                                                                </span>
+                                                            </div>
+
+                                                            {sisaPembayaran > 0 && (
+                                                                <div className="flex justify-between items-center text-sm bg-orange-50 p-2 rounded">
+                                                                    <span className="text-orange-700 font-medium flex items-center gap-2">
+                                                                        <AlertTriangle size={12} />
+                                                                        Sisa Pembayaran
+                                                                    </span>
+                                                                    <span className="font-bold text-orange-600">
+                                                                        {formatRupiah(sisaPembayaran)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+
+                                                            {sisaPembayaran === 0 && totalTerbayar > 0 && (
+                                                                <div className="bg-emerald-100 border border-emerald-300 text-emerald-800 px-3 py-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                                                                    <CheckCircle size={14} />
+                                                                    Pembayaran Lunas
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            {/* Riwayat transaksi */}
+                                            {selectedOrder.pembayaran?.length > 0 && (
+                                                <div className="mt-4 pt-3 border-t border-[#E1E3E7]">
+                                                    <p className="text-xs text-gray-600 font-semibold mb-2">Riwayat Transaksi:</p>
+                                                    <div className="space-y-2">
+                                                        {selectedOrder.pembayaran.map((payment, idx) => (
+                                                            <div key={payment.id_pembayaran} className="text-xs bg-white border border-[#E1E3E7] rounded p-2">
+                                                                <div className="flex justify-between items-start mb-1">
+                                                                    <span className="font-semibold text-[#0C4371]">
+                                                                        {payment.jenis_pembayaran === 'DP' ? 'DP (Down Payment)' : 
+                                                                         payment.jenis_pembayaran === 'PELUNASAN' ? 'Pelunasan' : 
+                                                                         'Lunas'}
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-full font-semibold ${
+                                                                        payment.status_pembayaran === 'Terverifikasi' ? 'bg-green-100 text-green-700' :
+                                                                        payment.status_pembayaran === 'Ditolak' ? 'bg-red-100 text-red-700' :
+                                                                        'bg-orange-100 text-orange-700'
+                                                                    }`}>
+                                                                        {payment.status_pembayaran === 'Terverifikasi' ? 'Berhasil' :
+                                                                         payment.status_pembayaran === 'Ditolak' ? 'Ditolak' : 'Pending'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-gray-600">
+                                                                    <span>{payment.metode_bayar} • {formatDate(payment.tgl_bayar)}</span>
+                                                                    <span className="font-bold text-[#0C4371]">{formatRupiah(payment.jumlah_bayar)}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                </div>
-                            </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={() => setIsDetailModalOpen(false)}
-                                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-300 transition"
+                                    {/* Timeline */}
+                                    <div className="pt-3 border-t border-[#E1E3E7]">
+                                        <p className="text-xs text-gray-600 font-semibold mb-2">Timeline:</p>
+                                        <div className="space-y-1.5 text-xs">
+                                            <div className="flex justify-between p-2">
+                                                <span className="text-gray-700">Tanggal Pesanan</span>
+                                                <span className="font-semibold text-[#0C4371]">{formatDate(selectedOrder.tgl_pesan)}</span>
+                                            </div>
+                                            <div className="flex justify-between p-2">
+                                                <span className="text-gray-700">Tanggal Mulai</span>
+                                                <span className="font-semibold text-[#0C4371]">{formatDate(selectedOrder.tgl_mulai)}</span>
+                                            </div>
+                                            {selectedOrder.tgl_selesai && (
+                                                <div className="flex justify-between p-2">
+                                                    <span className="text-gray-700">Tanggal Selesai</span>
+                                                    <span className="font-semibold text-[#0C4371]">{formatDate(selectedOrder.tgl_selesai)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+{/* Action Buttons - Compact */}
+                <div className="flex gap-2 pt-4 border-t border-[#E1E3E7] mt-4">
+                    <button
+                        onClick={() => setIsDetailModalOpen(false)}
+                        className="flex-1 px-4 py-2.5 bg-[#E1E3E7] text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-300 transition"
                                 >
                                     Tutup
                                 </button>
@@ -831,27 +901,32 @@ const ProfilePage = () => {
                                                 setIsDetailModalOpen(false);
                                                 navigate(`/pemesanan/${selectedOrder.id_pemesanan}/status`);
                                             }}
-                                            className={`flex-1 px-6 py-3 text-white font-bold rounded-xl transition inline-flex items-center justify-center gap-2 ${
+                                            className={`flex-1 px-4 py-2.5 text-white font-bold text-sm rounded-lg transition inline-flex items-center justify-center gap-1.5 ${
                                                 selectedOrder.status_pemesanan === 'Pembayaran Ditolak'
                                                     ? 'bg-red-600 hover:bg-red-700'
                                                     : selectedOrder.status_pemesanan === 'DP Dibayar'
                                                     ? 'bg-orange-600 hover:bg-orange-700'
-                                                    : 'bg-[#00a3e0] hover:bg-[#0082b3]'
+                                                    : 'bg-[#5CBCE2] hover:bg-[#0C4371]'
                                             }`}
                                         >
                                             {selectedOrder.status_pemesanan === 'Pembayaran Ditolak' && (
                                                 <>
-                                                    <XCircle size={20} />
-                                                    Upload Ulang Pembayaran
+                                                    <XCircle size={16} />
+                                                    Upload Ulang
                                                 </>
                                             )}
                                             {selectedOrder.status_pemesanan === 'DP Dibayar' && (
                                                 <>
-                                                    <AlertTriangle size={20} />
-                                                    Lanjutkan Pelunasan ({formatRupiah(sisaPembayaran)})
+                                                    <AlertTriangle size={16} />
+                                                    Pelunasan
                                                 </>
                                             )}
-                                            {selectedOrder.status_pemesanan === 'Dikonfirmasi' && 'Bayar Sekarang'}
+                                            {selectedOrder.status_pemesanan === 'Dikonfirmasi' && (
+                                                <>
+                                                    <Wallet size={16} />
+                                                    Bayar Sekarang
+                                                </>
+                                            )}
                                         </button>
                                     );
                                 })()}
@@ -860,21 +935,25 @@ const ProfilePage = () => {
                                 {selectedOrder.status_pemesanan === 'Selesai' && (
                                     <>
                                         {selectedOrder.ulasan && selectedOrder.ulasan.length > 0 ? (
-                                            // Jika sudah ada review, tampilkan badge
-                                            <div className="flex-1 px-6 py-3 bg-green-50 border-2 border-green-200 text-green-700 font-bold rounded-xl text-center inline-flex items-center justify-center gap-2">
-                                                <CheckCircle size={20} />
-                                                Sudah Direview
-                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    setIsDetailModalOpen(false);
+                                                    navigate(`/review-success/${selectedOrder.ulasan[0].id_ulasan}`);
+                                                }}
+                                                className="flex-1 px-4 py-2.5 bg-green-600 text-white font-bold text-sm rounded-lg hover:bg-green-700 transition inline-flex items-center justify-center gap-1.5"
+                                            >
+                                                <Eye size={16} />
+                                                Lihat Review
+                                            </button>
                                         ) : (
-                                            // Jika belum ada review, tampilkan button
                                             <button
                                                 onClick={() => {
                                                     setIsDetailModalOpen(false);
                                                     navigate(`/review-form/${selectedOrder.id_pemesanan}`);
                                                 }}
-                                                className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-xl hover:from-yellow-600 hover:to-orange-600 transition inline-flex items-center justify-center gap-2"
+                                                className="flex-1 px-4 py-2.5 bg-yellow-500 text-white font-bold text-sm rounded-lg hover:bg-yellow-600 transition inline-flex items-center justify-center gap-1.5"
                                             >
-                                                <Star size={20} />
+                                                <Star size={16} />
                                                 Beri Review
                                             </button>
                                         )}

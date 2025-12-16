@@ -37,12 +37,14 @@ class ArmadaController extends Controller
             'jenis_kendaraan' => 'required|string|max:100',
             'kapasitas' => 'required|string|max:50',
             'harga_sewa_per_hari' => 'required|numeric|min:0',
-            'status_ketersediaan' => 'required|in:Tersedia,Digunakan,Perbaikan',
+            //'status_ketersediaan' => 'required|in:Tersedia,Digunakan,Perbaikan',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        $data['status_ketersediaan'] = 'Tersedia';
 
         $armada = Armada::create($validator->validated());
 
@@ -60,7 +62,7 @@ class ArmadaController extends Controller
             'jenis_kendaraan' => 'required|string|max:100',
             'kapasitas' => 'required|string|max:50',
             'harga_sewa_per_hari' => 'required|numeric|min:0',
-            'status_ketersediaan' => 'required|in:Tersedia,Digunakan,Perbaikan',
+            //'status_ketersediaan' => 'required|in:Tersedia,Digunakan,Perbaikan',
         ]);
 
         if ($validator->fails()) {

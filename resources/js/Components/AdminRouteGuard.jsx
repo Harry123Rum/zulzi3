@@ -34,6 +34,9 @@ const AdminRouteGuard = ({ element, isAdminOnly }) => {
 
     // 2. Cek status Login (Untuk semua rute yang menggunakan guard ini)
     if (!isAuthenticated) {
+        // Tampilkan alert untuk memberi tahu user bahwa mereka harus login
+        alert('Silakan login terlebih dahulu untuk mengakses halaman ini.');
+        
         // Jika belum login, redirect ke halaman login
         // Menambahkan state agar setelah login, user dikembalikan ke halaman yang dituju
         return <Navigate to="/login" replace state={{ from: location.pathname }} />;

@@ -1,9 +1,9 @@
 // resources/js/Pages/Auth/LoginPage.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { FormInput, Alert, LoadingButton } from '@/components/ReusableUI';
+import { FormInput, Alert, LoadingButton } from '@/Components/ReusableUI';
 import { CheckCircle, Eye, EyeOff } from 'lucide-react'; // Import ikon mata
 
 const LoginPage = () => {
@@ -22,6 +22,21 @@ const LoginPage = () => {
     const [errors, setErrors] = useState({});
     const [alert, setAlert] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    // ✅ BARU: useEffect untuk load remembered email saat component mount
+    useEffect(() => {
+        const rememberedEmail = localStorage.getItem('remembered_email');
+        const rememberMe = localStorage.getItem('remember_me');
+        
+        if (rememberedEmail && rememberMe === 'true') {
+            setFormData(prev => ({
+                ...prev,
+                email: rememberedEmail,
+                remember: true
+            }));
+            console.log('📧 Remembered email loaded:', rememberedEmail);
+        }
+    }, []);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

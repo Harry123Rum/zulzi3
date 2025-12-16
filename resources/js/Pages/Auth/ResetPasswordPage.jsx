@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FormInput, Alert, LoadingButton } from '@/components/ReusableUI';
+import { FormInput, Alert, LoadingButton } from '@/Components/ReusableUI';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import authService from '../../../service/authService';
 

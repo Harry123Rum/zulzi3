@@ -43,6 +43,26 @@ const PaymentSuccess = () => {
         }).format(num || 0);
     };
 
+    // Format tanggal ke format Indonesia
+    const formatTanggal = (dateString) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    // Format kode pesanan (sinkron dengan admin: ZT-XXXXX dengan 5 digit)
+    const formatKodePesanan = (id) => {
+        return `ZT-${String(id).padStart(5, '0')}`;
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
@@ -69,102 +89,88 @@ const PaymentSuccess = () => {
     const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Terverifikasi');
     const totalTerbayar = verifiedPayments.reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);
 
-    // Pisahkan pembayaran DP dan LUNAS (yang Terverifikasi)
-    const dpPayment = verifiedPayments.find(p => p.jenis_pembayaran === 'DP');
-    const lunasPayment = verifiedPayments.find(p => p.jenis_pembayaran === 'LUNAS');
+    // Debug: Log semua pembayaran untuk cek
+    console.log('📊 All Payments:', pembayaranList);
+    console.log('✅ Verified Payments:', verifiedPayments);
+
+    // Pisahkan pembayaran berdasarkan jenis
+    const dpPayments = verifiedPayments.filter(p => p.jenis_pembayaran === 'DP');
+    const lunasPayments = verifiedPayments.filter(p => p.jenis_pembayaran === 'LUNAS');
+    const pelunasanPayments = verifiedPayments.filter(p => p.jenis_pembayaran === 'PELUNASAN');
 
     const supirPhone = order.supir?.no_telepon || '';
     const waLink = supirPhone ? `https://wa.me/62${supirPhone.replace(/^0/, '')}` : '#';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-cyan-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="max-w-2xl w-full">
                 {/* Success Card */}
-                <div className="bg-white rounded-3xl shadow-2xl border-2 border-green-200 overflow-hidden animate-fade-in-up">
-                    {/* Header dengan Gradient */}
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-center text-white">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
-                            <CheckCircle size={48} className="text-green-600" />
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+                    {/* Header Clean */}
+                    <div className="bg-green-500 p-8 text-center text-white">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <CheckCircle size={48} className="text-green-500" />
                         </div>
                         <h1 className="text-3xl font-bold mb-2">Pembayaran Lunas!</h1>
-                        <p className="text-green-100">Semua pembayaran telah terverifikasi. Pesanan Anda akan segera diproses!</p>
+                        <p className="text-green-50">Semua pembayaran telah terverifikasi. Pesanan Anda akan segera diproses!</p>
                     </div>
 
                     {/* Content */}
-                    <div className="p-8">
+                    <div className="p-6">
                         {/* Ringkasan Pembayaran */}
-                        <div className="bg-gray-50 rounded-2xl p-6 mb-6">
-                            <h3 className="font-bold text-gray-800 mb-4 text-center">Ringkasan Pembayaran</h3>
+                        <div className="bg-[#FAFAFA] rounded-xl p-5 mb-5 border border-[#E1E3E7]">
+                            <h3 className="font-bold text-[#0C4371] mb-4">Ringkasan Pembayaran</h3>
 
                             <div className="space-y-3 mb-4">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Total Tagihan</span>
-                                    <span className="font-bold text-gray-800">{formatRupiah(totalTagihan)}</span>
+                                    <span className="font-bold text-[#0C4371]">{formatRupiah(totalTagihan)}</span>
                                 </div>
 
-                                {/* Tampilkan breakdown jika ada DP */}
-                                {dpPayment && (
+                                {/* Tampilkan SEMUA pembayaran yang terverifikasi */}
+                                {verifiedPayments.length > 0 && (
                                     <>
-                                        <div className="border-t border-gray-200 pt-3">
-                                            <p className="text-xs text-gray-500 mb-2">Detail Pembayaran:</p>
-                                        </div>
-                                        <div className="flex justify-between text-sm bg-white rounded-lg p-3 border border-blue-200">
-                                            <span className="text-blue-700 flex items-center gap-2">
-                                                <CheckCircle size={16} />
-                                                DP (Down Payment)
-                                            </span>
-                                            <span className="font-bold text-blue-700">{formatRupiah(dpPayment.jumlah_bayar)}</span>
-                                        </div>
+                                        <div className="border-t border-[#E1E3E7] pt-3 mb-2"></div>
+                                        {verifiedPayments.map((payment, idx) => (
+                                            <div key={idx} className="flex justify-between text-sm bg-white rounded-lg p-3 border border-[#E1E3E7]">
+                                                <span className="text-gray-700 flex items-center gap-2">
+                                                    <CheckCircle size={14} className="text-green-600" />
+                                                    {payment.jenis_pembayaran === 'DP' ? 'DP (Down Payment)' : 
+                                                     payment.jenis_pembayaran === 'PELUNASAN' ? 'Pelunasan' : 
+                                                     'Pembayaran Lunas'}
+                                                </span>
+                                                <span className="font-bold text-green-600">{formatRupiah(payment.jumlah_bayar)}</span>
+                                            </div>
+                                        ))}
                                     </>
                                 )}
 
-                                {lunasPayment && dpPayment && (
-                                    <div className="flex justify-between text-sm bg-white rounded-lg p-3 border border-green-200">
-                                        <span className="text-green-700 flex items-center gap-2">
-                                            <CheckCircle size={16} />
-                                            Pelunasan
-                                        </span>
-                                        <span className="font-bold text-green-700">{formatRupiah(lunasPayment.jumlah_bayar)}</span>
-                                    </div>
-                                )}
-
-                                {/* Jika langsung lunas (tidak ada DP) */}
-                                {lunasPayment && !dpPayment && (
-                                    <div className="flex justify-between text-sm bg-white rounded-lg p-3 border border-green-200">
-                                        <span className="text-green-700 flex items-center gap-2">
-                                            <CheckCircle size={16} />
-                                            Pembayaran Lunas
-                                        </span>
-                                        <span className="font-bold text-green-700">{formatRupiah(lunasPayment.jumlah_bayar)}</span>
-                                    </div>
-                                )}
-
-                                <div className="border-t-2 border-gray-300 pt-3 flex justify-between items-center">
-                                    <span className="font-bold text-gray-800">Total Terbayar</span>
-                                    <span className="font-bold text-2xl text-green-600">{formatRupiah(totalTerbayar)}</span>
+                                <div className="border-t border-[#E1E3E7] pt-3 flex justify-between items-center">
+                                    <span className="font-bold text-[#0C4371]">Total Terbayar</span>
+                                    <span className="font-bold text-xl text-green-600">{formatRupiah(totalTerbayar)}</span>
                                 </div>
                             </div>
 
                             {/* Info Pesanan */}
-                            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                            <div className="bg-[#EFF6FF] rounded-lg p-4 border border-[#BBDEFF]">
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div>
                                         <p className="text-gray-500 text-xs mb-1">Kode Pesanan</p>
-                                        <p className="font-mono font-bold text-gray-800">#{order.id_pemesanan}</p>
+                                        <p className="font-mono font-bold text-[#0C4371]">{formatKodePesanan(order.id_pemesanan)}</p>
                                     </div>
                                     <div>
                                         <p className="text-gray-500 text-xs mb-1">Tanggal Layanan</p>
-                                        <p className="font-bold text-gray-800">{order.tgl_mulai}</p>
+                                        <p className="font-bold text-[#0C4371]">{formatTanggal(order.tgl_mulai)}</p>
                                     </div>
                                     {order.armada && (
                                         <>
                                             <div>
                                                 <p className="text-gray-500 text-xs mb-1">Armada</p>
-                                                <p className="font-bold text-gray-800">{order.armada.nama_armada}</p>
+                                                <p className="font-bold text-[#0C4371]">{order.armada.nama_armada}</p>
                                             </div>
                                             <div>
                                                 <p className="text-gray-500 text-xs mb-1">No. Plat</p>
-                                                <p className="font-bold text-gray-800">{order.armada.no_plat}</p>
+                                                <p className="font-bold text-[#0C4371]">{order.armada.no_plat}</p>
                                             </div>
                                         </>
                                     )}
@@ -174,19 +180,19 @@ const PaymentSuccess = () => {
 
                         {/* Info Supir */}
                         {order.supir && (
-                            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 mb-6 border-2 border-blue-200">
-                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <User size={20} className="text-blue-600" />
+                            <div className="bg-[#FAFAFA] rounded-xl p-5 mb-5 border border-[#E1E3E7]">
+                                <h3 className="font-bold text-[#0C4371] mb-4 flex items-center gap-2">
+                                    <User size={18} className="text-[#5CBCE2]" />
                                     Informasi Supir
                                 </h3>
                                 <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-2xl">
+                                    <div className="w-14 h-14 bg-[#0C4371] rounded-xl flex items-center justify-center text-white font-bold text-xl">
                                         {order.supir.nama.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-gray-800 text-lg">{order.supir.nama}</p>
-                                        <p className="text-gray-600 flex items-center gap-2">
-                                            <Phone size={14} />
+                                        <p className="font-bold text-[#0C4371] text-base">{order.supir.nama}</p>
+                                        <p className="text-gray-600 text-sm flex items-center gap-2">
+                                            <Phone size={12} className="text-[#5CBCE2]" />
                                             {order.supir.no_telepon}
                                         </p>
                                     </div>
@@ -194,9 +200,9 @@ const PaymentSuccess = () => {
                                 {supirPhone && (
                                     <button
                                         onClick={() => window.open(waLink, '_blank')}
-                                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-md"
+                                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"
                                     >
-                                        <MessageCircle size={20} />
+                                        <MessageCircle size={18} />
                                         Hubungi Supir via WhatsApp
                                     </button>
                                 )}
@@ -207,25 +213,25 @@ const PaymentSuccess = () => {
                         <div className="space-y-3">
                             <Link
                                 to="/"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-lg"
+                                className="w-full bg-[#5CBCE2] hover:bg-[#0C4371] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"
                             >
-                                <Home size={20} />
+                                <Home size={18} />
                                 Kembali ke Beranda
                             </Link>
 
                             <Link
                                 to="/profile"
-                                className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition"
+                                className="w-full bg-white border border-[#E1E3E7] text-[#0C4371] py-3 rounded-xl font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition"
                             >
-                                <User size={20} />
+                                <User size={18} />
                                 Lihat Riwayat Pesanan
                             </Link>
                         </div>
 
                         {/* Catatan */}
-                        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                            <p className="text-sm text-yellow-800">
-                                <span className="font-bold">💡 Catatan:</span> Pesanan Anda akan segera diproses.
+                        <div className="mt-5 bg-orange-50 border border-orange-200 rounded-xl p-4">
+                            <p className="text-sm text-gray-700">
+                                <span className="font-bold text-orange-700">💡 Catatan:</span> Pesanan Anda akan segera diproses.
                                 Supir akan menghubungi Anda untuk koordinasi lebih lanjut. Terima kasih telah menggunakan layanan Zulzi Trans!
                             </p>
                         </div>

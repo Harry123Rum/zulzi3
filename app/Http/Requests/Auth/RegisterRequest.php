@@ -18,7 +18,15 @@ class RegisterRequest extends FormRequest
             'nama' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:25', 'unique:user,email'], 
             'no_telepon' => ['required', 'string', 'max:15', 'regex:/^[0-9]+$/'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => [
+                'required',
+                'confirmed',
+                'min:8',
+                'regex:/[A-Z]/',  // Harus ada huruf besar
+                'regex:/[a-z]/',  // Harus ada huruf kecil
+                'regex:/[0-9]/',  // Harus ada angka
+                'regex:/[!@#$%^&*()_+\-=\[\]{};:\'"|,.<>\/?]/', // Harus ada karakter khusus
+            ],
         ];
     }
 
@@ -37,6 +45,7 @@ class RegisterRequest extends FormRequest
             'password.required' => 'Password wajib diisi',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
             'password.min' => 'Password minimal 8 karakter',
+            'password.regex' => 'Password harus memiliki huruf besar, huruf kecil, angka, dan karakter khusus (!@#$%^&*)',
         ];
     }
 }

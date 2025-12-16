@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import './bootstrap';
 import '../css/app.css';
 import OAuthCallback from './Pages/Auth/OAuthCallback';
 
@@ -87,7 +88,6 @@ root.render(
           <Route path="/beranda" element={<LandingPageWithAuth />} />
           <Route path="/tentang-kami" element={<AboutPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/pemesanan" element={<PemesananPage />} />
 
           {/* ===================================== */}
           {/* ROUTE REVIEW SYSTEM (dari develop)   */}
@@ -107,6 +107,10 @@ root.render(
           {/* ===================================== */}
           {/* ROUTE USER (Harus Login)             */}
           {/* ===================================== */}
+          <Route
+            path="/pemesanan"
+            element={<AdminRouteGuard element={<PemesananPage />} isAdminOnly={false} />}
+          />
           <Route
             path="/profile"
             element={<AdminRouteGuard element={<ProfilePage />} isAdminOnly={false} />}

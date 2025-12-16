@@ -187,9 +187,16 @@ class PemesananController extends Controller
         // Debug: Log hasil query
         \Log::info('📦 Found ' . $orders->total() . ' total orders, showing page ' . $page);
 
+        // Map data untuk tambahkan kode_pesanan terformat
+        $ordersData = $orders->getCollection()->map(function ($order) {
+            $orderArray = $order->toArray();
+            $orderArray['kode_pesanan'] = 'ZT-' . str_pad($order->id_pemesanan, 5, '0', STR_PAD_LEFT);
+            return $orderArray;
+        });
+
         return response()->json([
             'status' => 'success',
-            'data' => $orders->items(),
+            'data' => $ordersData,
             'pagination' => [
                 'current_page' => $orders->currentPage(),
                 'last_page' => $orders->lastPage(),

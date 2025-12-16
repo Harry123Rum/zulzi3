@@ -107,15 +107,25 @@ export function AuthProvider({ children }) {
             localStorage.setItem('auth_token', token); 
             localStorage.setItem('user', JSON.stringify(userData));
             
-            // 2. Set Authorization header
+            // 2. Jika "Remember Me" dicentang, simpan email untuk pre-fill login berikutnya
+            if (credentials.remember) {
+                localStorage.setItem('remembered_email', credentials.email);
+                localStorage.setItem('remember_me', 'true');
+            } else {
+                localStorage.removeItem('remembered_email');
+                localStorage.removeItem('remember_me');
+            }
+            
+            // 3. Set Authorization header
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            // 3. Update state
+            // 4. Update state
             setUser(userData);
             
             console.log('✅ Login successful:', userData.nama);
+            console.log('💾 Remember me:', credentials.remember);
             
-            // 4. Return user data
+            // 5. Return user data
             return { 
                 success: true, 
                 user: userData,
@@ -148,6 +158,18 @@ export function AuthProvider({ children }) {
         api.defaults.headers.common['Authorization'] = null;
         setUser(null);
         setIsAuthenticating(false);
+        
+        // Set notifikasi logout berhasil
+        const notification = {
+            type: 'success',
+            message: 'Logout berhasil! Sampai jumpa lagi.'
+        };
+        
+        // Dispatch custom event untuk alert langsung muncul (tanpa refresh)
+        window.dispatchEvent(new CustomEvent('logoutSuccess', { detail: notification }));
+        
+        // Hapus dari localStorage untuk mencegah double alert saat refresh
+        localStorage.removeItem('oauth_alert');
         
         console.log('🚪 User logged out');
     };

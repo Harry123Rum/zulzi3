@@ -52,14 +52,15 @@ const SupirModal = ({ isOpen, onClose, onSave, supirData, setSupirData, errors }
                     />
                     
                     <FormInput 
-                        label="Pengalaman (Tahun)"
-                        name="pengalaman_tahun"
+                        label="Tahun Mulai Kerja"
+                        name="tahun_mulai_kerja"
                         type="number"
-                        value={supirData.pengalaman_tahun || ''}
+                        value={supirData.tahun_mulai_kerja || ''}
                         onChange={handleChange}
-                        placeholder="Masukkan tahun pengalaman"
-                        error={errors.pengalaman_tahun ? errors.pengalaman_tahun[0] : null}
-                        min="0"
+                        placeholder="Contoh: 2020"
+                        error={errors.tahun_mulai_kerja ? errors.tahun_mulai_kerja[0] : null}
+                        min="1980"
+                        max={new Date().getFullYear()}
                     />
                 </div>
 
@@ -133,8 +134,8 @@ const KelolaSupir = ({ setHeaderAction }) => {
     const handleOpenModal = (type, supir = null) => {
         setModalType(type);
         const defaultData = type === 'add' 
-            ? { nama_lengkap: '', no_sim: '', no_telepon: '', pengalaman_tahun: '' } 
-            : { ...supir, pengalaman_tahun: parseInt(supir.pengalaman_tahun) || '' };
+            ? { nama_lengkap: '', no_sim: '', no_telepon: '', tahun_mulai_kerja: '' } 
+            : { ...supir, tahun_mulai_kerja: parseInt(supir.tahun_mulai_kerja) || '' };
         
         setCurrentSupir(defaultData);
         setIsModalOpen(true);

@@ -13,6 +13,10 @@ const PembayaranPage = ({ setHeaderAction }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [deleteConfirm, setDeleteConfirm] = useState(null)
 
+    const [confirmVerify, setConfirmVerify] = useState(null);
+    const [alert, setAlert] = useState(null);
+    const [isVerifying, setIsVerifying] = useState(false);
+
     // Konfigurasi Axios yang Aman
     const api = useMemo(() => {
         const instance = axios.create({
@@ -73,33 +77,42 @@ const PembayaranPage = ({ setHeaderAction }) => {
             })
     };
 
-    const handleVerify = (id, action) => {
-        const actionText = action === 'approve' ? 'menyetujui' : 'menolak';
-
-        if (!confirm(`Apakah Anda yakin ingin ${actionText} pembayaran ini?`)) {
-            return;
-        }
-
-        api.post(`/api/admin/pembayaran/${id}/verify`, { action })
-            .then((response) => {
-                fetchPayments();
-                setDetailModal(null);
-
-                // ✨ Tampilkan info status pemesanan juga
-                const orderStatus = response.data.order_status;
-                alert(
-                    `✓ Pembayaran berhasil ${action === 'approve' ? 'disetujui' : 'ditolak'}!\n` +
-                    `Status Pemesanan: ${orderStatus}`
-                );
-            })
-            .catch(err => {
-                console.error("Gagal memverifikasi pembayaran:", err.response?.data || err.message);
-                alert("❌ Gagal memverifikasi pembayaran. Cek console untuk detail.");
-            });
+    const handleVerifyClick = (id, action) => {
+        setConfirmVerify({ id, action });
     };
 
+    const handleVerifyConfirm = async () => {
+        const { id, action } = confirmVerify;
 
+        try {
+            setIsVerifying(true);
 
+            const response = await api.post(
+                `/api/admin/pembayaran/${id}/verify`,
+                { action }
+            );
+
+            fetchPayments();
+            setDetailModal(null);
+
+            setAlert({
+                type: 'success',
+                message: `Pembayaran berhasil ${
+                    action === 'approve' ? 'disetujui' : 'ditolak'
+                }. Status Pesanan: ${response.data.order_status}`
+            });
+
+        } catch (err) {
+            console.error(err);
+            setAlert({
+                type: 'error',
+                message: 'Gagal memverifikasi pembayaran.'
+            });
+        } finally {
+            setIsVerifying(false);
+            setConfirmVerify(null);
+        }
+    };
 
     const formatRupiah = (amount) => {
         return new Intl.NumberFormat('id-ID', {
@@ -126,11 +139,9 @@ const PembayaranPage = ({ setHeaderAction }) => {
     // ✨ BARU: Helper untuk format jenis pembayaran
     const formatJenisPembayaran = (jenis) => {
         const jenisMap = {
-            // 'LUNAS': '💰 Bayar Penuh',
-            // 'DP': '📝 Down Payment',
-            // 'PELUNASAN': '✅ Pelunasan'
-            'LUNAS' : 'LUNAS',
-            'DP' : 'DP',
+            'LUNAS': 'LUNAS',
+            'DP': 'DP',
+            'PELUNASAN': 'PELUNASAN'
         };
         return jenisMap[jenis] || jenis;
     };
@@ -171,7 +182,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
                         ) : payments.length > 0 ? (
                             payments.map((payment) => (
                                 <tr key={payment.id_pembayaran} className="hover:bg-slate-50 transition-colors">
-                                    <td className="py-3.5 px-4 text-center font-medium text-slate-600 w-10">{payment.id_pemesanan}</td>
+                                    <td className="py-3.5 px-4 text-center font-medium text-slate-900">{payment.kode_pesanan || 'ZT-' + String(payment.id_pemesanan).padStart(5, '0')}</td>
                                     <td className="py-3.5 px-4 text-center text-slate-600">{payment.nama}</td>
                                     <td className="py-3.5 px-4 text-center text-slate-600">{formatRupiah(payment.jumlah_bayar)}</td>
                                     <td className="py-3.5 px-4 text-center text-slate-600">{formatDate(payment.tgl_bayar)}</td>
@@ -221,7 +232,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-xs text-slate-500 mb-1">ID Pesanan</p>
-                                        <p className="text-lg font-bold text-slate-900">#{detailModal.id_pemesanan}</p>
+                                        <p className="text-lg font-bold text-slate-900">{detailModal.kode_pesanan || 'ZT-' + String(detailModal.id_pemesanan).padStart(5, '0')}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-slate-500 mb-1">Status</p>
@@ -252,7 +263,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-500 mb-1">Rekening Tujuan</p>
-                                    <p className="text-sm font-semibold text-slate-900">{detailModal.rekening_tujuan || 'BCA - 1234567890'}</p>
+                                    <p className="text-sm font-semibold text-slate-900">{detailModal.rekening_tujuan || 'BCA - 5290249017 (Feri Antono)'}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-500 mb-1">Jenis Pembayaran</p>
@@ -286,7 +297,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
                                     type="button"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        handleVerify(detailModal.id_pembayaran, 'reject');
+                                        handleVerifyClick(detailModal.id_pembayaran, 'reject');
                                     }}
                                     className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg"
                                 >
@@ -299,7 +310,7 @@ const PembayaranPage = ({ setHeaderAction }) => {
                                     type="button"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        handleVerify(detailModal.id_pembayaran, 'approve');
+                                        handleVerifyClick(detailModal.id_pembayaran, 'approve');
                                     }}
                                     className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
                                 >
@@ -325,6 +336,45 @@ const PembayaranPage = ({ setHeaderAction }) => {
                         )}
                     </>
                 )}
+            </Modal>
+
+            <Modal
+                isOpen={!!confirmVerify}
+                onClose={() => setConfirmVerify(null)}
+                title="Konfirmasi Pembayaran"
+            >
+                <div className="p-6">
+                    <p className="text-sm text-slate-600">
+                        Apakah Anda yakin ingin
+                        <strong className="mx-1">
+                            {confirmVerify?.action === 'approve'
+                                ? 'menyetujui'
+                                : 'menolak'}
+                        </strong>
+                        pembayaran ini?
+                    </p>
+                </div>
+
+                <div className="flex justify-end gap-3 p-5 bg-slate-50 border-t">
+                    <button
+                        onClick={() => setConfirmVerify(null)}
+                        className="px-5 py-2 text-sm border rounded-lg"
+                    >
+                        Batal
+                    </button>
+
+                    <button
+                        onClick={handleVerifyConfirm}
+                        disabled={isVerifying}
+                        className={`px-5 py-2 text-sm text-white rounded-lg ${
+                            confirmVerify?.action === 'approve'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-red-600 hover:bg-red-700'
+                        }`}
+                    >
+                        {isVerifying ? 'Memproses...' : 'Ya, Lanjutkan'}
+                    </button>
+                </div>
             </Modal>
 
             {/* Delete Confirmation Modal */}

@@ -5,6 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Zulzi Trans</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/logozulzi.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('images/logozulzi.png') }}">
+
         <!-- CSRF Token untuk Axios / Fetch -->
         <meta name="csrf-token" content="{{ csrf_token() }}">
 

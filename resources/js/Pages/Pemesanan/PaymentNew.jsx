@@ -11,7 +11,7 @@ const PaymentNew = () => {
 
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [jenisPembayaran, setJenisPembayaran] = useState(isPelunasan ? 'LUNAS' : 'DP');
+    const [jenisPembayaran, setJenisPembayaran] = useState(isPelunasan ? 'PELUNASAN' : 'DP');
     const [metodeBayar, setMetodeBayar] = useState('BCA'); // Default BCA
 
     useEffect(() => {
@@ -47,7 +47,7 @@ const PaymentNew = () => {
         const totalTagihan = Number(order.total_biaya) || 0;
         const nominalDP = Number(order.dp_amount) || 0;
         const pembayaranList = Array.isArray(order.pembayaran) ? order.pembayaran : [];
-        const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Verified');
+        const verifiedPayments = pembayaranList.filter(p => p.status_pembayaran === 'Terverifikasi');
         const sudahDibayar = verifiedPayments.reduce((sum, p) => sum + Number(p.jumlah_bayar || 0), 0);
         const sisaPembayaran = Math.max(0, totalTagihan - sudahDibayar);
 
@@ -98,8 +98,8 @@ const PaymentNew = () => {
     // Data rekening BCA
     const bankAccount = {
         name: 'Bank BCA',
-        rekening: '1234567890',
-        atasNama: 'Zulzi Trans'
+        rekening: '5290249017',
+        atasNama: 'Feri Antono'
     };
 
     // Metode pembayaran options
@@ -189,29 +189,29 @@ const PaymentNew = () => {
                                 </div>
                             </label>
 
-                            {/* LUNAS Option */}
+                            {/* LUNAS/PELUNASAN Option */}
                             <label className={`border-2 rounded-xl p-4 flex items-start gap-4 cursor-pointer transition ${
-                                jenisPembayaran === 'LUNAS'
+                                (isPelunasan && jenisPembayaran === 'PELUNASAN') || (!isPelunasan && jenisPembayaran === 'LUNAS')
                                 ? 'border-blue-500 bg-blue-50'
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}>
                                 <input
                                     type="radio"
                                     name="jenis"
-                                    value="LUNAS"
-                                    checked={jenisPembayaran === 'LUNAS'}
+                                    value={isPelunasan ? 'PELUNASAN' : 'LUNAS'}
+                                    checked={isPelunasan ? jenisPembayaran === 'PELUNASAN' : jenisPembayaran === 'LUNAS'}
                                     onChange={(e) => setJenisPembayaran(e.target.value)}
                                     className="mt-1"
                                 />
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-bold text-gray-800">
-                                            {isPelunasan ? 'Pelunasan' : 'LUNAS (Full Payment)'}
+                                            {isPelunasan ? 'Pelunasan (Bayar Sisa)' : 'LUNAS (Full Payment)'}
                                         </span>
-                                        {jenisPembayaran === 'LUNAS' && <CheckCircle size={20} className="text-blue-600" />}
+                                        {((isPelunasan && jenisPembayaran === 'PELUNASAN') || (!isPelunasan && jenisPembayaran === 'LUNAS')) && <CheckCircle size={20} className="text-blue-600" />}
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">
-                                        {isPelunasan ? 'Bayar sisa pelunasan' : 'Bayar langsung semua tagihan'}
+                                        {isPelunasan ? 'Bayar sisa pelunasan setelah DP' : 'Bayar langsung semua tagihan'}
                                     </p>
                                     <div className="bg-white border border-blue-200 rounded-lg p-3">
                                         <p className="text-xs text-gray-500 mb-1">Yang harus dibayar sekarang:</p>

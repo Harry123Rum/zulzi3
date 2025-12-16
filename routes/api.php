@@ -55,6 +55,8 @@ Route::get('/about', [AboutController::class, 'index']);
 // Route Khusus Halaman Review
 Route::get('/reviews/target/{id_pemesanan}', [ReviewController::class, 'getReviewTarget']);
 Route::post('/reviews', [ReviewController::class, 'store']);
+Route::get('/ulasan/{id}', [ReviewController::class, 'show']);
+Route::delete('/ulasan/{id}', [ReviewController::class, 'destroy']);
 
 // Route Armada List (Public untuk dropdown)
 Route::get('/armada-list', [PemesananController::class, 'getArmadaList']);

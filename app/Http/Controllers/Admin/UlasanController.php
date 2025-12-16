@@ -28,9 +28,19 @@ class UlasanController extends Controller
         
         // Handle Filter Layanan (Rental, Angkutan, Sampah)
         if ($request->has('layanan_filter') && $request->layanan_filter != 'Semua') {
-            $layanan = $request->layanan_filter;
-            $query->whereHas('pemesanan.layanan', function ($q) use ($layanan) {
-                $q->where('nama_layanan', $layanan); 
+            $filterValue = $request->layanan_filter;
+            
+            // Mapping nama singkat dari frontend ke nama database
+            $layananMap = [
+                'Rental' => 'Sewa Kendaraan',
+                'Angkutan' => 'Angkut Barang',
+                'Sampah' => 'Angkut Sampah'
+            ];
+            
+            $namaLayanan = $layananMap[$filterValue] ?? $filterValue;
+            
+            $query->whereHas('pemesanan.layanan', function ($q) use ($namaLayanan) {
+                $q->where('nama_layanan', $namaLayanan); 
             });
         }
         

@@ -94,10 +94,6 @@ export default function LandingPage(props) {
       nama_layanan: 'Angkut Barang',
       kategori: 'angkut_barang',
       armada: [
-        { id_armada: 1, jenis_kendaraan: 'Pik Up Bak', kapasitas: '1.5 Ton', harga_sewa_per_hari: 850000, gambar: 'pikup bak.jpeg' },
-        { id_armada: 2, jenis_kendaraan: 'Pik Up Bok', kapasitas: '1.5 Ton', harga_sewa_per_hari: 850000, gambar: 'pikup bok.jpeg' },
-        { id_armada: 3, jenis_kendaraan: 'Tronton Wings Bok', kapasitas: '10.5 Ton', harga_sewa_per_hari: 850000, gambar: 'tronton.jpeg' },
-        { id_armada: 4, jenis_kendaraan: 'Truck Trailer', kapasitas: '>20 Ton', harga_sewa_per_hari: 850000, gambar: 'trailer.jpeg' },
         { id_armada: 5, jenis_kendaraan: 'CDD Bak', kapasitas: '4.5 Ton', harga_sewa_per_hari: 850000, gambar: 'cdd bak.jpeg' },
         { id_armada: 6, jenis_kendaraan: 'CDD Bok', kapasitas: '4.5 Ton', harga_sewa_per_hari: 850000, gambar: 'cdd bok.jpeg' },
         { id_armada: 7, jenis_kendaraan: 'CDE (Engkel) Bak', kapasitas: '2.5 Ton', harga_sewa_per_hari: 850000, gambar: 'engkel bak.jpeg' },
@@ -112,7 +108,7 @@ export default function LandingPage(props) {
       kategori: 'angkut_sampah',
       armada: [
         { id_armada: 11, jenis_kendaraan: 'CDD DUMT TRUCT', ongkir: 400000, gambar: 'cdd drumt.jpeg' },
-        { id_armada: 12, jenis_kendaraan: 'CDE angkut sampah', ongkir: 300000, gambar: 'cde sampah.jpeg' },
+        { id_armada: 12, jenis_kendaraan: 'CDE Angkut Sampah', ongkir: 300000, gambar: 'cde sampah.jpeg' },
       ]
     },
     {
@@ -179,10 +175,11 @@ export default function LandingPage(props) {
   }, [reviews.length]);
 
   // ============================================================
-  // ✅ LOGIC BARU: Cek dan Tampilkan Notifikasi OAuth
+  // ✅ LOGIC BARU: Cek dan Tampilkan Notifikasi OAuth + Custom Event Listener
   // ============================================================
   useEffect(() => {
-    if (isInitialLoad.current) {
+    // Fungsi untuk menampilkan alert dari localStorage
+    const displayAlertFromStorage = () => {
       const storedAlert = localStorage.getItem('oauth_alert');
       if (storedAlert) {
         try {
@@ -198,8 +195,32 @@ export default function LandingPage(props) {
         // Pastikan alert dihapus dari storage setelah dibaca
         localStorage.removeItem('oauth_alert');
       }
+    };
+
+    // Cek saat initial load
+    if (isInitialLoad.current) {
+      displayAlertFromStorage();
       isInitialLoad.current = false;
     }
+
+    // Listener untuk custom event logoutSuccess (untuk alert instant tanpa refresh)
+    const handleLogoutSuccess = (event) => {
+      const notification = event.detail;
+      setOauthAlert(notification);
+      
+      // Set timer untuk menghilangkan alert setelah 5 detik
+      setTimeout(() => setOauthAlert(null), 5000);
+    };
+
+    window.addEventListener('logoutSuccess', handleLogoutSuccess);
+
+    // Tambah listener untuk perubahan storage (dari tab/window lain)
+    window.addEventListener('storage', displayAlertFromStorage);
+
+    return () => {
+      window.removeEventListener('logoutSuccess', handleLogoutSuccess);
+      window.removeEventListener('storage', displayAlertFromStorage);
+    };
   }, []);
   // ============================================================
 
@@ -586,7 +607,7 @@ export default function LandingPage(props) {
 
                     <div className="flex flex-col md:flex-row justify-center gap-5">
                         <button
-                            onClick={() => window.open('https://wa.me/628123456789')}
+                            onClick={() => window.open('https://wa.me/628158822394')}
                             className="group/btn inline-flex items-center justify-center gap-3 px-12 py-5 bg-gradient-to-r from-[#00a3e0] to-[#0088b8] hover:from-[#008cc0] hover:to-[#006b93] text-white font-bold rounded-xl text-lg shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95"
                         >
                             <Phone size={22} className="group-hover/btn:rotate-12 transition-transform" />

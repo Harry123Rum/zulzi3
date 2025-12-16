@@ -9,11 +9,12 @@ export default function Footer() {
                     
                     {/* BRAND INFO */}
                     <div>
-                        <div className="flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-[#003366]">
-                                <Truck size={16} strokeWidth={3} />
-                            </div>
-                            <span className="text-xl font-extrabold tracking-tight font-sans">ZULZI TRANS</span>
+                        <div className="flex items-center mb-6">
+                            <img 
+                                src="/images/white_logo_fix.png" 
+                                alt="Zulzi Trans Logo" 
+                                className="h-16 w-auto"
+                            />
                         </div>
                         <p className="text-gray-400 text-sm leading-relaxed mb-6 pr-4">
                             Mitra transportasi terpercaya Anda. Menyediakan layanan logistik dan perjalanan dengan armada prima dan pelayanan profesional.

@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FormInput, Alert, LoadingButton } from '@/Components/ReusableUI';
-import { CheckCircle } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/Components/PasswordStrengthIndicator';
+import { isPasswordStrong } from '@/utils/passwordValidator';
+import { CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -19,6 +21,8 @@ const RegisterPage = () => {
     const [errors, setErrors] = useState({});
     const [alert, setAlert] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -31,6 +35,26 @@ const RegisterPage = () => {
         setLoading(true);
         setAlert(null);
         setErrors({});
+
+        // Validasi password strength
+        if (!isPasswordStrong(formData.password)) {
+            setAlert({ 
+                type: 'error', 
+                message: 'Password tidak memenuhi kriteria keamanan. Pastikan password memiliki huruf besar, huruf kecil, angka, dan karakter khusus!' 
+            });
+            setLoading(false);
+            return;
+        }
+
+        // Validasi password confirmation match
+        if (formData.password !== formData.password_confirmation) {
+            setAlert({ 
+                type: 'error', 
+                message: 'Password dan konfirmasi password tidak cocok!' 
+            });
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await register(formData);
@@ -101,7 +125,7 @@ const RegisterPage = () => {
             </div>
 
             {/* BAGIAN KANAN: FORM (Putih) */}
-            <div className="w-full md:w-7/12 flex flex-col justify-center px-8 md:px-24 py-12 bg-white overflow-y-auto">
+            <div className="w-full md:w-7/12 flex flex-col justify-center px-8 md:px-24 py-16 bg-white overflow-y-auto min-h-screen">
                 <div className="max-w-lg mx-auto w-full">
                     <div className="mb-8">
                         <h1 className="text-3xl font-extrabold text-primary-dark mb-2">
@@ -116,7 +140,7 @@ const RegisterPage = () => {
                         <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <FormInput
                             label="Nama"
                             name="nama"
@@ -145,25 +169,66 @@ const RegisterPage = () => {
                             placeholder="Masukkan no HP"
                         />
 
-                        <FormInput
-                            label="Password"
-                            name="password"
-                            type="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            error={errors.password && errors.password[0]}
-                            placeholder="Masukkan password"
-                        />
+                        {/* Password Input dengan Toggle dan Strength Indicator */}
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                Password <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Masukkan password yang kuat"
+                                    className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all duration-300 outline-none ${
+                                        errors.password ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-gray-300 bg-white focus:border-primary focus:ring-1 focus:ring-primary'
+                                    }`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-sm mt-1">{errors.password[0]}</p>
+                            )}
+                            <PasswordStrengthIndicator password={formData.password} />
+                        </div>
 
-                        <FormInput
-                            label="Konfirmasi Password"
-                            name="password_confirmation"
-                            type="password"
-                            value={formData.password_confirmation}
-                            onChange={handleChange}
-                            error={errors.password_confirmation && errors.password_confirmation[0]}
-                            placeholder="Masukkan password"
-                        />
+                        {/* Konfirmasi Password Input dengan Toggle */}
+                        <div>
+                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-2">
+                                Konfirmasi Password <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPasswordConfirm ? "text" : "password"}
+                                    id="password_confirmation"
+                                    name="password_confirmation"
+                                    value={formData.password_confirmation}
+                                    onChange={handleChange}
+                                    placeholder="Masukkan ulang password"
+                                    className={`w-full px-4 py-3 pr-12 rounded-lg border transition-all duration-300 outline-none ${
+                                        errors.password_confirmation ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-gray-300 bg-white focus:border-primary focus:ring-1 focus:ring-primary'
+                                    }`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPasswordConfirm(prev => !prev)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPasswordConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {errors.password_confirmation && (
+                                <p className="text-red-500 text-sm mt-1">{errors.password_confirmation[0]}</p>
+                            )}
+                        </div>
 
                         <LoadingButton 
                             type="submit" 

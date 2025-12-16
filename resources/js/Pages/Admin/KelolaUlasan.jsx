@@ -43,8 +43,17 @@ const RatingStars = ({ rating }) => {
  * Badge Layanan kustom (Rental, Angkutan, Sampah)
  */
 const LayananBadge = ({ layanan }) => {
+    // Mapping nama database ke nama singkat untuk konsistensi UI
+    const layananMap = {
+        'Sewa Kendaraan': 'Rental',
+        'Angkut Barang': 'Angkutan',
+        'Angkut Sampah': 'Sampah'
+    };
+    
+    const displayName = layananMap[layanan] || layanan;
+    
     let styles;
-    switch (layanan) {
+    switch (displayName) {
         case 'Rental':
             styles = 'bg-blue-100 text-blue-700';
             break;
@@ -58,7 +67,7 @@ const LayananBadge = ({ layanan }) => {
             styles = 'bg-gray-100 text-gray-700';
             break;
     }
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${styles}`}>{layanan}</span>;
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${styles}`}>{displayName}</span>;
 };
 
 

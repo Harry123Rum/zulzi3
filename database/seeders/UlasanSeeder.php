@@ -55,9 +55,9 @@ class UlasanSeeder extends Seeder
 
 
         // 2. PASTIKAN DATA LAYANAN ADA (PENTING UNTUK FILTER)
-        $layananRental = Layanan::firstOrCreate(['nama_layanan' => 'Rental']);
-        $layananAngkutan = Layanan::firstOrCreate(['nama_layanan' => 'Angkutan']);
-        $layananSampah = Layanan::firstOrCreate(['nama_layanan' => 'Sampah']);
+        $layananRental = Layanan::firstOrCreate(['nama_layanan' => 'Sewa Kendaraan']);
+        $layananAngkutan = Layanan::firstOrCreate(['nama_layanan' => 'Angkut Barang']);
+        $layananSampah = Layanan::firstOrCreate(['nama_layanan' => 'Angkut Sampah']);
 
 
         // 3. PASTIKAN DATA ARMADA ADA (minimal satu untuk relasi)

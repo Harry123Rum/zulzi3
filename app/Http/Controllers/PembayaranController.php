@@ -17,12 +17,27 @@ class PembayaranController extends Controller
             'id_pemesanan' => 'required|exists:pemesanan,id_pemesanan',
             'jumlah_bayar' => 'required|numeric|min:1',
             'metode_bayar' => 'required|in:BCA,QRIS',
-            'jenis_pembayaran' => 'required|in:DP,LUNAS',
+            'jenis_pembayaran' => 'required|in:DP,LUNAS,PELUNASAN',
             'bukti_transfer' => 'required|file|image|max:5120', // Max 5MB
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // 1B. Validasi Duplikasi: Cegah DP atau LUNAS yang sudah Menunggu/Terverifikasi
+        if (in_array($request->jenis_pembayaran, ['DP', 'LUNAS'])) {
+            $existingPayment = Pembayaran::where('id_pemesanan', $request->id_pemesanan)
+                ->where('jenis_pembayaran', $request->jenis_pembayaran)
+                ->whereIn('status_pembayaran', ['Menunggu', 'Terverifikasi'])
+                ->first();
+
+            if ($existingPayment) {
+                $jenis = $request->jenis_pembayaran === 'DP' ? 'DP' : 'pembayaran LUNAS';
+                return response()->json([
+                    'message' => "Pembayaran {$jenis} sudah pernah dikirim dan sedang diproses/terverifikasi."
+                ], 422);
+            }
         }
 
         // 2. Upload Bukti

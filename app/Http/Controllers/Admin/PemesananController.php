@@ -35,7 +35,7 @@ class PemesananController extends Controller
                 'pemesanan.id_armada',
                 'pemesanan.foto_barang',
                 'pemesanan.dp_amount',
-                DB::raw("CONCAT('RNT-', LPAD(pemesanan.id_pemesanan, 3, '0')) as kode_pesanan"),
+                DB::raw("CONCAT('ZT-', LPAD(pemesanan.id_pemesanan, 5, '0')) as kode_pesanan"),
                 'user.nama as nama_pelanggan',
                 'pemesanan.lokasi_jemput',
                 'pemesanan.lokasi_tujuan',
@@ -63,7 +63,7 @@ class PemesananController extends Controller
                     ->orWhere('pemesanan.lokasi_jemput', 'LIKE', "%{$search}%")
                     ->orWhere('supir.nama', 'LIKE', "%{$search}%")
                     ->orWhere('armada.jenis_kendaraan', 'LIKE', "%{$search}%")
-                    ->orWhere(DB::raw("CONCAT('RNT-', LPAD(pemesanan.id_pemesanan, 3, '0'))"), 'LIKE', "%{$search}%");
+                    ->orWhere(DB::raw("CONCAT('ZT-', LPAD(pemesanan.id_pemesanan, 5, '0'))"), 'LIKE', "%{$search}%");
             });
         }
 
@@ -72,22 +72,18 @@ class PemesananController extends Controller
             ->orderByRaw("CASE
                             WHEN pemesanan.status_pemesanan = 'Menunggu' THEN 1
                             WHEN pemesanan.status_pemesanan = 'Dikonfirmasi' THEN 2
-                            WHEN pemesanan.status_pemesanan = 'Pembayaran Ditolak' THEN 3
-                            WHEN pemesanan.status_pemesanan = 'DP Dibayar' THEN 4
-                            WHEN pemesanan.status_pemesanan = 'Lunas' THEN 5
-                            WHEN pemesanan.status_pemesanan = 'Selesai' THEN 6
-                            ELSE 7
+                            WHEN pemesanan.status_pemesanan = 'Menunggu Verifikasi' THEN 3
+                            WHEN pemesanan.status_pemesanan = 'Pembayaran Ditolak' THEN 4
+                            WHEN pemesanan.status_pemesanan = 'DP Dibayar' THEN 5
+                            WHEN pemesanan.status_pemesanan = 'Lunas' THEN 6
+                            WHEN pemesanan.status_pemesanan = 'Selesai' THEN 7
+                            ELSE 8
                         END ASC") // urutkan status khusus
             ->get();
 
-        // Tambahkan harga diskon jika ada (contoh logika diskon)
+        // Tambahkan data tambahan jika diperlukan
         $pemesanan->transform(function ($item) {
-            // Contoh: Jika status berlangsung, berikan diskon 10%
-            if ($item->status_pemesanan === 'Berlangsung') {
-                $item->harga_diskon = $item->total_biaya * 0.9;
-            } else {
-                $item->harga_diskon = null;
-            }
+            // Bisa tambahkan logika custom di sini jika perlu
             return $item;
         });
 
@@ -200,7 +196,8 @@ class PemesananController extends Controller
     }
 
     /**
-     * Verifikasi pemesanan (ubah status)
+     * Verifikasi pemesanan (selesaikan pesanan)
+     * Status Berlangsung DIHAPUS - Admin koordinasi langsung via WA/Phone
      */
     public function verifikasi(Request $request, $id)
     {
@@ -210,37 +207,37 @@ class PemesananController extends Controller
             return response()->json(['message' => 'Pemesanan tidak ditemukan'], 404);
         }
 
-        // Ambil status baru jika dikirim FE (misal "Selesai")
+        // Ambil status baru jika dikirim FE
         $requestedStatus = $request->input('status_pemesanan');
 
         // Jika tombol "Selesai" diklik (FE kirim "status_pemesanan": "Selesai")
         if ($requestedStatus === 'Selesai') {
+            // ✅ Validasi: Hanya bisa selesai jika sudah Lunas atau DP Dibayar
+            if (!in_array($pemesanan->status_pemesanan, ['Lunas', 'DP Dibayar', 'Menunggu Verifikasi'])) {
+                return response()->json([
+                    'message' => 'Pesanan harus sudah dibayar (minimal DP) sebelum bisa diselesaikan',
+                    'current_status' => $pemesanan->status_pemesanan
+                ], 422);
+            }
+
             DB::table('pemesanan')
                 ->where('id_pemesanan', $id)
-                ->update(['status_pemesanan' => 'Selesai']);
+                ->update([
+                    'status_pemesanan' => 'Selesai',
+                    'tgl_selesai' => now() // Auto-fill tanggal selesai
+                ]);
 
             return response()->json([
-                'message' => 'Status pemesanan berhasil diubah ke Selesai',
+                'message' => 'Pesanan berhasil diselesaikan',
                 'new_status' => 'Selesai'
             ]);
         }
 
-        // Logika perubahan status
-        $newStatus = match ($pemesanan->status_pemesanan) {
-            'Menunggu' => 'Dikonfirmasi',
-            'Dikonfirmasi' => 'Lunas',
-            'Lunas' => 'Selesai',
-            default => $pemesanan->status_pemesanan
-        };
-
-        DB::table('pemesanan')
-            ->where('id_pemesanan', $id)
-            ->update(['status_pemesanan' => $newStatus]);
-
+        // Jika tidak ada request yang valid, return error
         return response()->json([
-            'message' => 'Status pemesanan berhasil diupdate',
-            'new_status' => $newStatus
-        ]);
+            'message' => 'Status baru tidak valid. Gunakan "Berlangsung" atau "Selesai"',
+            'current_status' => $pemesanan->status_pemesanan
+        ], 422);
     }
 
     /**

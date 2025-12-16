@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, MessageCircle, Truck, Heart, AlertCircle, Trash2 } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../../Components/Navbar';
 import Footer from '../../Components/Footer';
 
 export default function ReviewSuccess() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // Get query params
-  const ulasanId = searchParams.get('ulasan_id'); // Get ?ulasan_id=1 from URL
+  const { id } = useParams(); // Get :id from /review-success/:id
+  const ulasanId = id; // Use URL path parameter as ulasan_id
   const [ulasan, setUlasan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,6 +86,15 @@ export default function ReviewSuccess() {
     return '#ef4444'; // red
   };
 
+  const formatIndonesianDate = (dateString) => {
+    const date = new Date(dateString);
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
   const renderStars = (rating) => {
     return Array.from({ length: 5 }).map((_, i) => (
       <span key={i} style={{ color: i < rating ? '#fbbf24' : '#d1d5db' }}>
@@ -108,7 +117,7 @@ export default function ReviewSuccess() {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center pt-24">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Silakan Login Terlebih Dahulu</h2>
@@ -130,7 +139,7 @@ export default function ReviewSuccess() {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center pt-24">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Ulasan Tidak Ditemukan</h2>
@@ -149,8 +158,8 @@ export default function ReviewSuccess() {
     <div className="min-h-screen bg-gradient-to-b from-white via-[#f0f7ff] to-[#e8f4ff] flex flex-col">
       <Navbar />
 
-      {/* Main Content */}
-      <div className="flex-1 py-12">
+      {/* Main Content - dengan padding-top untuk mengkompensasi navbar fixed */}
+      <div className="flex-1 py-12 pt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Success Header */}
@@ -184,7 +193,6 @@ export default function ReviewSuccess() {
                     </div>
                     <p className="text-3xl font-black text-[#3d9cff]">{avgRating}/5.0</p>
                   </div>
-                  <p className="text-sm text-green-600 font-bold">Berhasil Disimpan ✓</p>
                 </div>
               </div>
 
@@ -244,15 +252,15 @@ export default function ReviewSuccess() {
                     <Truck size={24} className="text-gray-600" />
                   </div>
                   <p className="text-xs text-gray-600 mb-1">Kendaraan</p>
-                  <p className="font-bold text-gray-800">{ulasan.armada?.jenis_kendaraan || 'N/A'}</p>
+                  <p className="font-bold text-gray-800">{ulasan.pemesanan?.armada?.jenis_kendaraan || 'N/A'}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Kode Pesanan</p>
-                  <p className="font-bold text-[#3d9cff] text-sm">{ulasan.pemesanan?.kode_pesanan}</p>
+                  <p className="font-bold text-gray-800 text-sm">{ulasan.pemesanan?.kode_pesanan || '-'}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Tanggal</p>
-                  <p className="font-bold text-gray-800">{new Date(ulasan.tgl_ulasan).toLocaleDateString('id-ID')}</p>
+                  <p className="font-bold text-gray-800">{formatIndonesianDate(ulasan.tgl_ulasan)}</p>
                 </div>
               </div>
 

@@ -137,7 +137,7 @@ const PaymentUpload = () => {
     };
 
     const bankOptions = {
-        'BCA': { name: 'Bank BCA', rekening: '1234567890', atasNama: 'Zulzi Trans' },
+        'BCA': { name: 'Bank BCA', rekening: '5290249017', atasNama: 'Feri Antono' },
         'QRIS': { name: 'QRIS', rekening: 'Scan QR Code', atasNama: 'Zulzi Trans' },
     };
 
@@ -176,7 +176,9 @@ const PaymentUpload = () => {
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Jenis Pembayaran:</span>
                                 <span className="font-bold text-gray-800">
-                                    {jenisPembayaran === 'DP' ? 'DP (Down Payment)' : 'LUNAS / Pelunasan'}
+                                    {jenisPembayaran === 'DP' ? 'DP (Down Payment)' : 
+                                     jenisPembayaran === 'PELUNASAN' ? 'Pelunasan (Bayar Sisa)' : 
+                                     'LUNAS (Full Payment)'}
                                 </span>
                             </div>
                             <div className="flex justify-between">

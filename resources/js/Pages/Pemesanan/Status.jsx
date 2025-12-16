@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
     CheckCircle, Clock, AlertTriangle, XCircle, Car, User, Home,
-    MessageCircle, CreditCard, ChevronLeft, ChevronRight
+    MessageCircle, CreditCard, ChevronLeft, ChevronRight, Phone, MapPin,
+    Package, Calendar
 } from 'lucide-react';
 
 const Status = () => {
@@ -55,14 +56,34 @@ const Status = () => {
         }).format(num || 0);
     };
 
-    const adminPhone = "6283195559334";
+    // Format tanggal ke format Indonesia
+    const formatTanggal = (dateString) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    // Format kode pesanan (sinkron dengan admin: ZT-XXXXX dengan 5 digit)
+    const formatKodePesanan = (id) => {
+        return `ZT-${String(id).padStart(5, '0')}`;
+    };
+
+    const adminPhone = "628158822394";
     
     // Generate WhatsApp message dengan data pesanan
     const generateWAMessage = () => {
         if (!order) return '';
         
-        // Ambil nama pelanggan dari user atau order
-        const namaPelanggan = order.nama_pelanggan || order.user?.nama || order.pelanggan?.nama || 'Customer';
+        // Ambil nama pelanggan dari pengguna yang sedang login atau dari order
+        const namaPelanggan = order.pengguna?.nama || order.nama_pelanggan || 'Customer';
         
         // Ambil nama layanan - cek apakah object atau string
         let namaLayanan = 'Layanan';
@@ -74,9 +95,11 @@ const Status = () => {
             namaLayanan = order.nama_layanan;
         }
         
-        const message = `Halo Admin, saya ingin diskusi harga untuk Order #${order.id_pemesanan}
+        const kodePesanan = formatKodePesanan(order.id_pemesanan);
+        
+        const message = `Halo Admin, saya ingin diskusi harga untuk Order ${kodePesanan}
 
-ID Pesanan: ${order.id_pemesanan}
+ID Pesanan: ${kodePesanan}
 Nama: ${namaPelanggan}
 Layanan: ${namaLayanan}
 
@@ -248,15 +271,138 @@ Terima kasih!`;
                         {/* Info Pemesan */}
                         <div className="bg-white rounded-2xl shadow-sm border p-6">
                             <h3 className="font-bold text-gray-800 mb-4">Informasi Pemesan</h3>
-                            <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+                            <div className="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-100">
                                 <div className="flex gap-2 text-sm">
                                     <User size={16} className="text-gray-400 shrink-0 mt-0.5"/>
-                                    <span className="font-medium">Zulzi User (Anda)</span>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-800">{order.pengguna?.nama || order.nama_pelanggan || 'Customer'}</p>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2 text-sm">
-                                    <Home size={16} className="text-gray-400 shrink-0 mt-0.5"/>
-                                    <span className="truncate">{order.lokasi_jemput}</span>
-                                </div>
+                                
+                                {(order.pengguna?.no_telepon || order.pengguna?.email) && (
+                                    <div className="flex gap-2 text-sm">
+                                        <Phone size={16} className="text-gray-400 shrink-0 mt-0.5"/>
+                                        <span className="text-gray-600">
+                                            {order.pengguna?.no_telepon || order.pengguna?.email}
+                                        </span>
+                                    </div>
+                                )}
+                                
+                                {/* Detail spesifik per layanan */}
+                                {(() => {
+                                    const namaLayanan = order.layanan?.nama_layanan || order.nama_layanan || '';
+                                    
+                                    // Layanan Angkut Barang (ada tujuan)
+                                    if (namaLayanan.toLowerCase().includes('barang')) {
+                                        return (
+                                            <>
+                                                <div className="pt-2 border-t border-gray-200">
+                                                    <p className="text-xs text-gray-500 mb-2 font-semibold">Rute Pengangkutan:</p>
+                                                    <div className="flex gap-2 text-sm mb-2">
+                                                        <MapPin size={16} className="text-green-500 shrink-0 mt-0.5"/>
+                                                        <div className="flex-1">
+                                                            <p className="text-xs text-gray-500 mb-0.5">Dari:</p>
+                                                            <p className="font-medium text-gray-800">{order.lokasi_jemput}</p>
+                                                        </div>
+                                                    </div>
+                                                    {order.lokasi_tujuan && (
+                                                        <div className="flex gap-2 text-sm">
+                                                            <MapPin size={16} className="text-red-500 shrink-0 mt-0.5"/>
+                                                            <div className="flex-1">
+                                                                <p className="text-xs text-gray-500 mb-0.5">Ke:</p>
+                                                                <p className="font-medium text-gray-800">{order.lokasi_tujuan}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {order.deskripsi_barang && (
+                                                    <div className="pt-2 border-t border-gray-200">
+                                                        <div className="text-sm">
+                                                            <p className="text-xs text-gray-500 mb-1">Deskripsi Barang:</p>
+                                                            <p className="text-gray-700 bg-white p-2 rounded border">{order.deskripsi_barang}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    }
+                                    
+                                    // Layanan Angkut Sampah (tanpa tujuan)
+                                    if (namaLayanan.toLowerCase().includes('sampah')) {
+                                        return (
+                                            <>
+                                                <div className="pt-2 border-t border-gray-200">
+                                                    <div className="flex gap-2 text-sm">
+                                                        <MapPin size={16} className="text-green-500 shrink-0 mt-0.5"/>
+                                                        <div className="flex-1">
+                                                            <p className="text-xs text-gray-500 mb-0.5">Lokasi Pengambilan:</p>
+                                                            <p className="font-medium text-gray-800">{order.lokasi_jemput}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {order.deskripsi_barang && (
+                                                    <div className="pt-2 border-t border-gray-200">
+                                                        <div className="text-sm">
+                                                            <p className="text-xs text-gray-500 mb-1">Deskripsi:</p>
+                                                            <p className="text-gray-700 bg-white p-2 rounded border">{order.deskripsi_barang}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    }
+                                    
+                                    // Layanan Sewa Kendaraan / Rental
+                                    if (namaLayanan.toLowerCase().includes('sewa') || namaLayanan.toLowerCase().includes('rental')) {
+                                        return (
+                                            <>
+                                                <div className="pt-2 border-t border-gray-200">
+                                                    <div className="flex gap-2 text-sm">
+                                                        <MapPin size={16} className="text-blue-500 shrink-0 mt-0.5"/>
+                                                        <div className="flex-1">
+                                                            <p className="text-xs text-gray-500 mb-0.5">Lokasi Penjemputan:</p>
+                                                            <p className="font-medium text-gray-800">{order.lokasi_jemput}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="pt-2 border-t border-gray-200 space-y-2">
+                                                    {order.jumlah_orang && (
+                                                        <div className="flex gap-2 text-sm">
+                                                            <User size={16} className="text-gray-400 shrink-0 mt-0.5"/>
+                                                            <span className="text-gray-600">
+                                                                <strong>{order.jumlah_orang}</strong> Penumpang
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {order.lama_rental && (
+                                                        <div className="flex gap-2 text-sm">
+                                                            <Calendar size={16} className="text-gray-400 shrink-0 mt-0.5"/>
+                                                            <span className="text-gray-600">
+                                                                Durasi: <strong>{order.lama_rental} Hari</strong>
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        );
+                                    }
+                                    
+                                    // Layanan lainnya (default)
+                                    return (
+                                        <div className="pt-2 border-t border-gray-200">
+                                            <div className="flex gap-2 text-sm">
+                                                <MapPin size={16} className="text-blue-500 shrink-0 mt-0.5"/>
+                                                <div className="flex-1">
+                                                    <p className="text-xs text-gray-500 mb-0.5">Lokasi:</p>
+                                                    <p className="font-medium text-gray-800">{order.lokasi_jemput}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
 
@@ -317,11 +463,11 @@ Terima kasih!`;
                             <div className="space-y-3 text-sm mb-6 pb-4 border-b border-gray-200">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Kode Pesanan</span>
-                                    <span className="font-mono font-bold">#{order.id_pemesanan}</span>
+                                    <span className="font-mono font-bold">{formatKodePesanan(order.id_pemesanan)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Tanggal Layanan</span>
-                                    <span className="font-medium">{order.tgl_mulai}</span>
+                                    <span className="font-medium">{formatTanggal(order.tgl_mulai)}</span>
                                 </div>
                             </div>
 
@@ -339,7 +485,9 @@ Terima kasih!`;
                                     <div className="space-y-2">
                                         {verifiedPayments.map((p, idx) => (
                                             <div key={idx} className="text-xs text-blue-700 flex justify-between">
-                                                <span>✓ {p.jenis_pembayaran}</span>
+                                                <span>✓ {p.jenis_pembayaran === 'DP' ? 'DP (Down Payment)' : 
+                                                         p.jenis_pembayaran === 'PELUNASAN' ? 'Pelunasan' : 
+                                                         'Lunas'}</span>
                                                 <span className="font-bold">{formatRupiah(p.jumlah_bayar)}</span>
                                             </div>
                                         ))}

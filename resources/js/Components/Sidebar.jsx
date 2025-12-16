@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
     LayoutDashboard,
     Truck,
@@ -55,11 +56,13 @@ const Sidebar = ({ activePage, onNavigate, isMobileMenuOpen, setIsMobileMenuOpen
             `}>
                 {/* Logo Area */}
                 <div className="p-6 flex items-center justify-center mb-4 mt-12 lg:mt-0">
-                    <img 
-                        src="/images/white_logo_fix.png" 
-                        alt="Zulzi Trans Logo" 
-                        className="h-12 md:h-16 w-auto"
-                    />
+                    <Link to="/beranda" className="hover:opacity-80 transition-opacity duration-200" title="Kembali ke Beranda">
+                        <img 
+                            src="/images/white_logo_fix.png" 
+                            alt="Zulzi Trans Logo" 
+                            className="h-12 md:h-16 w-auto"
+                        />
+                    </Link>
                 </div>
 
                 {/* Navigation */}

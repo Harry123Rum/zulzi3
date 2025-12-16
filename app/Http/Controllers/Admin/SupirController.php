@@ -28,14 +28,13 @@ class SupirController extends Controller
 
         // Ambil data dan map ke format yang diharapkan frontend
         $supirs = $query->orderBy('nama', 'asc')->get()->map(function ($supir) {
-            $pengalaman = is_numeric($supir->status_supir) ? $supir->status_supir : 0;
-            
             return [
                 'id_supir' => $supir->id_supir,
                 'nama_lengkap' => $supir->nama,
                 'no_sim' => $supir->no_sim,
                 'no_telepon' => $supir->no_telepon,
-                'pengalaman_tahun' => (int) $pengalaman,
+                'tahun_mulai_kerja' => $supir->tahun_mulai_kerja,
+                'pengalaman_tahun' => $supir->pengalaman_tahun, // Auto-calculated dari accessor
             ];
         });
 
@@ -52,7 +51,7 @@ class SupirController extends Controller
             'nama_lengkap' => 'required|string|max:100',
             'no_sim' => 'required|string|unique:supir,no_sim',
             'no_telepon' => 'required|string|max:15',
-            'pengalaman_tahun' => 'required|integer|min:0',
+            'tahun_mulai_kerja' => 'required|integer|min:1985|max:' . date('Y'),
         ]);
 
         if ($validator->fails()) {
@@ -64,7 +63,7 @@ class SupirController extends Controller
             'nama' => $request->nama_lengkap,
             'no_telepon' => $request->no_telepon,
             'no_sim' => $request->no_sim,
-            'status_supir' => $request->pengalaman_tahun, // Simpan pengalaman di status_supir (sementara)
+            'tahun_mulai_kerja' => $request->tahun_mulai_kerja,
         ]);
 
         return response()->json($supir, 201);
@@ -83,7 +82,8 @@ class SupirController extends Controller
             'nama_lengkap' => $supir->nama,
             'no_sim' => $supir->no_sim,
             'no_telepon' => $supir->no_telepon,
-            'pengalaman_tahun' => is_numeric($supir->status_supir) ? (int) $supir->status_supir : 0,
+            'tahun_mulai_kerja' => $supir->tahun_mulai_kerja,
+            'pengalaman_tahun' => $supir->pengalaman_tahun, // Auto-calculated
         ]);
     }
 
@@ -98,7 +98,7 @@ class SupirController extends Controller
             'nama_lengkap' => 'required|string|max:100',
             'no_sim' => 'required|string|unique:supir,no_sim,' . $supir->id_supir . ',id_supir',
             'no_telepon' => 'required|string|max:15',
-            'pengalaman_tahun' => 'required|integer|min:0',
+            'tahun_mulai_kerja' => 'required|integer|min:1985|max:' . date('Y'),
         ]);
 
         if ($validator->fails()) {
@@ -110,7 +110,7 @@ class SupirController extends Controller
             'nama' => $request->nama_lengkap,
             'no_telepon' => $request->no_telepon,
             'no_sim' => $request->no_sim,
-            'status_supir' => $request->pengalaman_tahun, // Simpan pengalaman di status_supir (sementara)
+            'tahun_mulai_kerja' => $request->tahun_mulai_kerja,
         ]);
 
         return response()->json($supir);

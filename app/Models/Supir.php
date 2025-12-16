@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $nama
  * @property string $no_telepon
  * @property string $no_sim
- * @property string $status_supir
+ * @property int $tahun_mulai_kerja
+ * @property int $pengalaman_tahun (calculated)
  */
 class Supir extends Model
 {
@@ -25,10 +26,24 @@ class Supir extends Model
         'nama',
         'no_telepon',
         'no_sim',
-        'status_supir',
+        'tahun_mulai_kerja',
     ];
 
     public $timestamps = false; // ERD tidak menunjukkannya
+
+    // --- ACCESSOR: Auto-calculate pengalaman ---
+
+    /**
+     * Hitung pengalaman otomatis berdasarkan tahun mulai kerja
+     * Cara pakai: $supir->pengalaman_tahun
+     */
+    public function getPengalamanTahunAttribute()
+    {
+        if (!$this->tahun_mulai_kerja) {
+            return 0;
+        }
+        return now()->year - $this->tahun_mulai_kerja;
+    }
 
     // --- RELASI SESUAI ERD ---
 

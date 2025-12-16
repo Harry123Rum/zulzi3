@@ -22,6 +22,7 @@ class PembayaranController extends Controller
         ->select(
             'pembayaran.id_pembayaran',
             'pembayaran.id_pemesanan',
+            DB::raw("CONCAT('ZT-', LPAD(pembayaran.id_pemesanan, 5, '0')) as kode_pesanan"),
             'user.nama as nama',
             'pembayaran.jumlah_bayar',
             'pembayaran.tgl_bayar',
@@ -78,6 +79,7 @@ class PembayaranController extends Controller
             ->select(
                 'pembayaran.id_pembayaran',
                 'pembayaran.id_pemesanan',
+                DB::raw("CONCAT('ZT-', LPAD(pembayaran.id_pemesanan, 5, '0')) as kode_pesanan"),
                 'user.nama as nama',
                 'pembayaran.jumlah_bayar',
                 'pembayaran.tgl_bayar',
@@ -219,10 +221,11 @@ class PembayaranController extends Controller
     private function getRekeningTujuan($metodeBayar)
     {
         $rekeningMap = [
-            'BCA - 1234567890' => 'BCA - 1234567890',
+            'BCA' => 'BCA - 5290249017 (Feri Antono)',
+            'QRIS' => 'QRIS - Zulzi Trans',
         ];
 
-        return $rekeningMap[$metodeBayar] ?? 'BCA - 1234567890';
+        return $rekeningMap[$metodeBayar] ?? 'BCA - 5290249017 (Feri Antono)';
     }
 
     /**
